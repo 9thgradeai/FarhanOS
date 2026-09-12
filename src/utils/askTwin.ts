@@ -152,11 +152,15 @@ export async function askTwin({
   onAction,
   signal,
 }: AskTwinOptions): Promise<string> {
-  // A single transparent retry covers transient empty streams (upstream
-  // hiccups, reasoning-token burnout before the server guard existed).
-  // Retried only when NOTHING was delivered — no text, no events, no
-  // error frame — never after an abort, and never after an OS action has
-  // already been dispatched (retrying would repeat real side effects).
+  // A single transparent retry covers transient upstream rate-limit failures
+  // (free-tier Groq TPM windows recharge over ~60s, so a healthy request
+  // behind a sticky 503 usually succeeds on the second try) and empty
+  // streams (upstream hiccups, reasoning-token burnout before the server
+  // guard existed). Retried only when NOTHING was delivered — no text, no
+  // events, no non-transient error frame — never after an abort, and never
+  // after an OS action has already been dispatched (retrying would repeat
+  // real side effects).
+  const TRANSIENT_ERROR = 'AI service unavailable. Please try again shortly.';
   let actionDispatched = false;
   const guardedCallbacks = {
     onDelta,
@@ -176,8 +180,9 @@ export async function askTwin({
     } catch (err) {
       const isAbort = (err as Error).name === 'AbortError' || signal?.aborted;
       const isEmpty = (err as Error).message === 'Empty response stream.';
-      if (!isEmpty || isAbort || actionDispatched || attempt > 0) throw err;
-      console.warn('[askTwin] empty stream, retrying once…');
+      const isTransient = (err as Error).message === TRANSIENT_ERROR;
+      if (!(isEmpty || isTransient) || isAbort || actionDispatched || attempt >= 1) throw err;
+      console.warn(`[askTwin] ${isEmpty ? 'empty stream' : 'transient upstream error'}, retrying once…`);
     }
   }
 }

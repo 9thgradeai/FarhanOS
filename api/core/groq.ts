@@ -38,6 +38,12 @@ export interface GroqStreamOpts {
   /** 'required' forces the model to emit at least one tool call this turn. */
   toolChoice?: 'auto' | 'required';
   /**
+   * Model to retry with when `model` is permanently blocked (daily quota,
+   * model outage). Free-tier daily token budgets are per model, so a leaner
+   * sibling model keeps the assistant available when the flagship is capped.
+   */
+  fallbackModel?: string;
+  /**
    * gpt-oss reasoning budget. 'low' is essential for short chat answers:
    * reasoning tokens count against max_tokens, so a medium/high effort can
    * burn the entire completion budget before any visible content is emitted.
@@ -47,40 +53,69 @@ export interface GroqStreamOpts {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const AI_SERVICE_UNAVAILABLE = 'AI service unavailable. Please try again shortly.';
+
+const BACKOFFS_MS = [2000, 5000, 9000];
+
 /**
- * Opens the streaming completion, transparently retrying once on 429 —
- * free-tier TPM windows can be a few seconds wide and a single bounded
- * wait rescues most collisions without ever duplicating emitted tokens.
+ * Opens the streaming completion, transparently retrying transient Groq
+ * failures. Free-tier TPM windows (8k/min) can take 10-60s to recharge, so
+ * 429s are retried with Retry-After-aware backoff; a brief 5xx/network retry
+ * absorbs occasional overload. Never duplicates emitted tokens because the
+ * stream is only returned once the response is OK.
  */
 async function openGroqStreamWithRetry(
   messages: GroqMessage[],
   body: Record<string, unknown>,
   timeoutMs: number,
-  attempts = 2
+  attempts = 4
 ): Promise<Response> {
   let lastRes: Response | null = null;
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const res = await fetchWithTimeout(
-      GROQ_URL,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${requireGroqKey()}`,
+    let res: Response;
+    try {
+      res = await fetchWithTimeout(
+        GROQ_URL,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${requireGroqKey()}`,
+          },
+          body: JSON.stringify(body),
         },
-        body: JSON.stringify(body),
-      },
-      timeoutMs
-    );
+        timeoutMs
+      );
+    } catch (err) {
+      // Timeout/abort before first byte — retry once, then surface the error.
+      if (attempt >= attempts - 1 || attempt > 0) {
+        console.error('[groq] upstream failure:', err instanceof Error ? err.message : err);
+        throw new ApiError(503, AI_SERVICE_UNAVAILABLE);
+      }
+      await sleep(BACKOFFS_MS[attempt] ?? 2000);
+      continue;
+    }
     if (res.ok) return res;
     lastRes = res;
     const retryAfter = Number(res.headers.get('retry-after'));
+    // Minutes-long Retry-After signals a daily/hourly quota block — retrying
+    // is pointless within function limits, so surface it immediately. Short
+    // Retry-After (under 90s) is the 8k TPM window, which is worth waiting
+    // through since it recharges within a minute.
+    const retryAfterMs = Number.isFinite(retryAfter) && retryAfter >= 0 ? retryAfter * 1000 : NaN;
+    if (Number.isFinite(retryAfterMs) && retryAfterMs > 90_000) {
+      console.error('[groq] quota block (long Retry-After), giving up:', res.status, retryAfterMs);
+      break;
+    }
     if (res.status === 429 && attempt < attempts - 1) {
-      const waitMs =
-        Number.isFinite(retryAfter) && retryAfter >= 0
-          ? Math.min(retryAfter * 1000, 6000)
-          : 4200;
+      const waitMs = Number.isFinite(retryAfterMs)
+        ? Math.min(retryAfterMs + 250, 45_000)
+        : (BACKOFFS_MS[attempt] ?? 5000);
       await sleep(waitMs);
+      continue;
+    }
+    if (res.status >= 500 && attempt < attempts - 1) {
+      await sleep(1500);
       continue;
     }
     break;
@@ -117,12 +152,20 @@ export async function* streamGroqChatEvents(
     body.tool_choice = opts.toolChoice === 'required' ? 'required' : 'auto';
   }
 
-  const res = await openGroqStreamWithRetry(messages, body, opts.timeoutMs ?? 60_000);
+  let res = await openGroqStreamWithRetry(messages, body, opts.timeoutMs ?? 60_000);
+
+  // Fall back to a sibling model when the primary is blocked (daily quota /
+  // model-wide outage). Tries only once; the fallback gets its own retries.
+  if (!res.ok && opts.fallbackModel) {
+    console.warn('[groq] falling back to model:', opts.fallbackModel);
+    body.model = opts.fallbackModel;
+    res = await openGroqStreamWithRetry(messages, body, opts.timeoutMs ?? 60_000, 3);
+  }
 
   if (!res.ok || !res.body) {
     const errData = await res.json().catch(() => ({}) as any);
     console.error('[groq] stream error:', res.status, errData?.error?.message || errData);
-    throw new ApiError(503, 'AI service unavailable. Please try again shortly.');
+    throw new ApiError(503, AI_SERVICE_UNAVAILABLE);
   }
 
   // Robust SSE frame parser tolerating chunks split mid-line.
@@ -253,8 +296,7 @@ export async function groqChat(
   if (opts.json) body.response_format = { type: 'json_object' };
   if (opts.reasoningEffort) body.reasoning_effort = opts.reasoningEffort;
 
-  const res = await fetchWithTimeout(
-    GROQ_URL,
+  const res = await openGroqChatWithRetry(
     {
       method: 'POST',
       headers: {
@@ -269,9 +311,47 @@ export async function groqChat(
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}) as any);
     console.error('[groq] chat error:', res.status, errData?.error?.message || errData);
-    throw new ApiError(503, 'AI service unavailable. Please try again shortly.');
+    throw new ApiError(503, AI_SERVICE_UNAVAILABLE);
   }
 
   const data = await res.json();
   return data.choices?.[0]?.message?.content || '';
+}
+
+/** Lightweight 429-aware retry for non-streaming chat calls. */
+async function openGroqChatWithRetry(
+  init: RequestInit,
+  timeoutMs: number,
+  attempts = 3
+): Promise<Response> {
+  let lastRes: Response | null = null;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    let res: Response;
+    try {
+      res = await fetchWithTimeout(GROQ_URL, init, timeoutMs);
+    } catch (err) {
+      if (attempt >= attempts - 1) {
+        console.error('[groq] chat upstream failure:', err instanceof Error ? err.message : err);
+        throw new ApiError(503, AI_SERVICE_UNAVAILABLE);
+      }
+      await sleep(2000);
+      continue;
+    }
+    if (res.ok) return res;
+    lastRes = res;
+    const retryAfter = Number(res.headers.get('retry-after'));
+    if (res.status === 429 && attempt < attempts - 1) {
+      const waitMs = Number.isFinite(retryAfter) && retryAfter >= 0
+        ? Math.min(retryAfter * 1000 + 250, 10_000)
+        : 3000;
+      await sleep(waitMs);
+      continue;
+    }
+    if (res.status >= 500 && attempt < attempts - 1) {
+      await sleep(1500);
+      continue;
+    }
+    break;
+  }
+  return lastRes!;
 }

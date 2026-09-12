@@ -206,6 +206,50 @@ describe('streamGroqChatEvents (tools)', () => {
       for await (const ev of streamGroqChatEvents([{ role: 'user', content: 'hi' }])) void ev;
     }).rejects.toMatchObject({ status: 503 });
   });
+
+  it('fails fast on a daily-quota 429 (long Retry-After) without retrying', async () => {
+    const quotaHeaders = new Headers({ 'retry-after': '1200' }); // 20-minute block
+    const fetchMock = vi.fn(
+      async () => new Response(JSON.stringify({ error: { message: 'tokens per day (TPD)' } }), {
+        status: 429,
+        headers: quotaHeaders,
+      })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(async () => {
+      for await (const ev of streamGroqChatEvents([{ role: 'user', content: 'hi' }])) void ev;
+    }).rejects.toMatchObject({ status: 503 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to the sibling model when the primary is quota-blocked', async () => {
+    const quotaHeaders = new Headers({ 'retry-after': '1200' });
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(async () =>
+        new Response(JSON.stringify({ error: { message: 'tokens per day' } }), {
+          status: 429,
+          headers: quotaHeaders,
+        })
+      )
+      .mockImplementationOnce(async () => sseResponse(baseFrames));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const events: Array<{ type: string; delta?: string }> = [];
+    for await (const ev of streamGroqChatEvents([{ role: 'user', content: 'hi' }], {
+      fallbackModel: 'openai/gpt-oss-20b',
+    })) {
+      events.push(ev);
+    }
+    expect(events).toEqual([
+      { type: 'text', delta: 'Hel' },
+      { type: 'text', delta: 'lo' },
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [, fallbackInit] = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(fallbackInit.body)).model).toBe('openai/gpt-oss-20b');
+  });
 });
 
 describe('groqChat (non-streaming)', () => {

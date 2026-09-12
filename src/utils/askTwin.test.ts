@@ -148,6 +148,28 @@ describe('askTwin', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('retries transparently once on a transient upstream 503 frame', async () => {
+    const transient = () =>
+      new Response(sseBody([
+        'data: {"type":"sources","items":[{"title":"Bio"}]}\n\n',
+        'data: {"error":"AI service unavailable. Please try again shortly."}\n\n',
+        'data: [DONE]\n\n',
+      ]), { status: 200, headers: streamHeaders });
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(async () => transient())
+      .mockImplementationOnce(async () =>
+        new Response(sseBody(['data: {"delta":"recovered"}\n\n', 'data: [DONE]\n\n']), {
+          status: 200,
+          headers: streamHeaders,
+        })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    expect(await askTwin({ message: 'x', history: [] })).toBe('recovered');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('does not retry after an OS action was dispatched (side effects)', async () => {
     let calls = 0;
     vi.stubGlobal(

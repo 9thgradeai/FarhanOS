@@ -151,7 +151,7 @@ export async function* streamAskTwin(
   const message = validateAskTwinInput(rawMessage, rawHistory);
 
   const history: GroqMessage[] = Array.isArray(rawHistory)
-    ? (rawHistory.slice(-20) as any[])
+    ? (rawHistory.slice(-8) as any[])
         .filter((h) => h && typeof h === 'object')
         .map((h: any) => ({
           role: h?.role === 'user' ? ('user' as const) : ('assistant' as const),
@@ -193,12 +193,13 @@ export async function* streamAskTwin(
       if (docs.length > 0) {
         sources.push(...docs.map((d) => ({ title: d.title })));
         // Capped tightly: on Groq free tiers every prompt token counts
-        // against an 8k TPM budget, so context bloat directly costs
-        // availability.
+        // against an 8k TPM budget AND a hard daily cap, so context bloat
+        // directly costs availability. ~5k chars ≈ 1.2-1.5k tokens leaves
+        // room for the completion and conversation inside one window.
         const context = docs
-          .map((d) => `## ${d.title}\n${clamp(d.content, 1800)}`)
+          .map((d) => `## ${d.title}\n${clamp(d.content, 1200)}`)
           .join('\n\n---\n\n')
-          .slice(0, 10_000);
+          .slice(0, 5000);
         systemPrompt = buildAskTwinSystemPrompt(context);
       }
     } catch (err) {
@@ -227,9 +228,11 @@ export async function* streamAskTwin(
     for await (const ev of streamGroqChatEvents(conversation, {
       temperature: 0.6,
       // Headroom for gpt-oss reasoning + answer; reasoning tokens count
-      // against this budget.
-      maxTokens: 1400,
+      // against this budget AND the 8k TPM / daily token caps, so keep it
+      // lean. Long-form editing is rare on this site; 1000 covers answers.
+      maxTokens: 1000,
       model,
+      fallbackModel: model === MODEL_DEFAULT ? MODEL_FAST : undefined,
       tools: toolsAvailable ? TOOL_SCHEMAS : undefined,
       // Live-data questions force a first tool call so answers are never
       // guessed from stale memory.
