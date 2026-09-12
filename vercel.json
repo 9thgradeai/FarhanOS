@@ -32,7 +32,7 @@
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://formspree.io https://plausible.io; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co; frame-ancestors 'none'; upgrade-insecure-requests; referrer strict-origin-when-cross-origin"
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://formspree.io https://plausible.io; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://formsubmit.co; frame-ancestors 'none'; upgrade-insecure-requests"
       }
     }
   ]
