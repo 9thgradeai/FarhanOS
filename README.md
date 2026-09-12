@@ -9,7 +9,7 @@
 
 An interactive portfolio workspace structured as a functional operating system. Built with React 19, Vite 6, Tailwind CSS v4, and Groq Llama 3.3 70B.
 
-**Live:** [https://farhankabir.me](https://farhankabir.tech)
+**Live:** [https://farhankabir.tech](https://farhankabir.tech)
 
 ---
 
