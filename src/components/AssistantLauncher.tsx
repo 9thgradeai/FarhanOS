@@ -1,14 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
   X, Send, ChevronRight, Copy, Check, Volume2, VolumeX,
   RefreshCw, Sparkles,
-  Brain, MessageCircle, Search, FileText, Square
+  FileText, Square, RotateCcw
 } from 'lucide-react';
 import { askTwin, AskTwinHistoryMessage, AskTwinSourceRef, AssistantAction } from '../utils/askTwin';
 import { sourceWindowFor, type AssistantSourceRef } from '../utils/osActions';
 import MarkdownRenderer from './MarkdownRenderer';
 import { AssistantGlyph } from './AssistantGlyph';
+import { FarhanAIIcon } from './FarhanAIIcon';
+import ProactiveGreeting from './ProactiveGreeting';
+import { useActiveSection } from '../utils/useActiveSection';
+import { suggestGreeting, suggestQuestions } from '../utils/assistantSuggestions';
+import { track } from '../utils/analytics';
 
 export interface AssistantLauncherProps {
   theme?: string;
@@ -36,21 +41,18 @@ interface Message {
   followUps?: string[];
 }
 
-const QUICK_ACTIONS = [
-  { label: 'Research', query: "Tell me about Farhan's research papers and clinical NLP work", icon: Search },
-  { label: 'Projects', query: 'What are Farhan\'s main SaaS products and open source projects?', icon: Sparkles },
-  { label: 'Skills', query: 'What is Farhan\'s technical stack and AI/ML expertise?', icon: Brain },
-  { label: 'Contact', query: 'How can I contact or hire Farhan Kabir?', icon: MessageCircle },
-];
-
 const STORAGE_KEY = 'farhanos.twin.chat';
 const VISIT_KEY = 'farhanos.visits';
+const GREETING_DISMISS_KEY = 'farhanos.greeting.dismissedAt';
+const GREETING_COOLDOWN_MS = 24 * 60 * 60 * 1000; // once a day max
+const GREETING_DELAY_MS = 4500; // not before the page breathes
+const GREETING_HIDE_MS = 12000; // auto-dismiss if ignored
 
 const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Systems fully operational. I am Farhan's personal AI — his certified neural clone. Query clinical pipelines, NLP architectures, or engineering profiles.",
+    "All systems operational. I'm Farhan AI — Farhan Kabir's certified neural twin. Query research, projects, career, or anything else on this page.",
   timestamp: new Date(),
 };
 
@@ -58,7 +60,7 @@ const RETURNING_WELCOME: Message = {
   id: 'welcome-returning',
   role: 'assistant',
   content:
-    "Welcome back. Farhan's neural clone is online and ready. What would you like to explore today?",
+    "Welcome back. Farhan AI is online and ready — what would you like to explore today?",
   timestamp: new Date(),
 };
 
@@ -90,6 +92,17 @@ const loadStoredMessages = (): Message[] => {
   } catch { /* ignore */ }
 
   return [WELCOME_MESSAGE];
+};
+
+// Same visit-count read the greeting uses. Reads AFTER loadStoredMessages has
+// incremented it during state init, so the very first visit sees a "1".
+const readVisitCount = (): number => {
+  try {
+    const n = parseInt(localStorage.getItem(VISIT_KEY) || '0', 10);
+    return Number.isFinite(n) ? n : 0;
+  } catch {
+    return 0;
+  }
 };
 
 export default function AssistantLauncher({
@@ -151,6 +164,58 @@ export default function AssistantLauncher({
 
   const isLight = theme === 'light';
   const isTerminal = theme === 'terminal';
+  const isLandingLeft = placement === 'landing-left';
+
+  // Contextual awareness: the landing section being viewed feeds the server,
+  // the quick actions, and the proactive greeting.
+  const activeSection = useActiveSection(isLandingLeft);
+  const [visitCount] = useState(readVisitCount);
+  const contextualQuestions = useMemo(
+    () => suggestQuestions({ activeSection, activeWindow, openWindows }),
+    [activeSection, activeWindow, openWindows]
+  );
+  const greeting = useMemo(
+    // VISIT_KEY is incremented inside loadStoredMessages during state init,
+    // so "has visited before" means the counter is already above 1.
+    () => suggestGreeting({ returning: visitCount > 1, activeSection }),
+    [visitCount, activeSection]
+  );
+
+  // Proactive greeting — shown once per session, on landing only, not while
+  // the panel is open, and never within 24h of a manual dismissal.
+  const [greetingVisible, setGreetingVisible] = useState(false);
+  const greetingShownRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLandingLeft || isOpen) return;
+    const id = setTimeout(() => {
+      if (greetingShownRef.current) return;
+      try {
+        const lastDismiss = parseInt(localStorage.getItem(GREETING_DISMISS_KEY) || '0', 10);
+        if (Number.isFinite(lastDismiss) && Date.now() - lastDismiss < GREETING_COOLDOWN_MS) {
+          greetingShownRef.current = true; // don't re-advertise this session
+          return;
+        }
+      } catch { /* ignore */ }
+      greetingShownRef.current = true;
+      setGreetingVisible(true);
+      track('assistant_greeting_shown');
+    }, GREETING_DELAY_MS);
+    return () => clearTimeout(id);
+  }, [isLandingLeft, isOpen]);
+
+  useEffect(() => {
+    if (!greetingVisible) return;
+    const id = setTimeout(() => setGreetingVisible(false), GREETING_HIDE_MS);
+    return () => clearTimeout(id);
+  }, [greetingVisible]);
+
+  const dismissGreeting = useCallback(() => {
+    setGreetingVisible(false);
+    try {
+      localStorage.setItem(GREETING_DISMISS_KEY, String(Date.now()));
+    } catch { /* ignore */ }
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -207,21 +272,24 @@ export default function AssistantLauncher({
     return () => window.removeEventListener('keydown', onKey);
   }, [isOpen]);
 
-  const sendMessage = useCallback(
-    async (text?: string) => {
-      const content = (text || input).trim();
-      if (!content || isLoading) return;
-
+  /**
+   * Core streaming reply. `appendUser` is false when regenerating (the user
+   * bubble already exists in `historyMessages`) so we never duplicate it.
+   */
+  const streamReply = useCallback(
+    async (content: string, historyMessages: Message[], appendUser = true) => {
       triggerSound?.(900, 0.03);
       setAiState('thinking');
 
-      const userMessage: Message = {
-        id: `user-${Date.now()}`,
-        role: 'user',
-        content,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
+      if (appendUser) {
+        const userMessage: Message = {
+          id: `user-${Date.now()}`,
+          role: 'user',
+          content,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
 
       const assistantId = `assistant-${Date.now()}`;
       // Placeholder assistant bubble we stream tokens into. It renders a typing
@@ -238,7 +306,7 @@ export default function AssistantLauncher({
         setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, ...patch } : m)));
 
       try {
-        const history = messages.map<AskTwinHistoryMessage>((m) => ({
+        const history = historyMessages.map<AskTwinHistoryMessage>((m) => ({
           role: m.role,
           content: m.content,
         }));
@@ -252,7 +320,8 @@ export default function AssistantLauncher({
           context: {
             openWindows,
             activeWindow,
-            visitCount: parseInt(localStorage.getItem(VISIT_KEY) || '0', 10),
+            activeSection: activeSection ?? undefined,
+            visitCount,
           },
           signal: controller.signal,
           onDelta: (full) => {
@@ -267,7 +336,10 @@ export default function AssistantLauncher({
           onFollowups: (items) => {
             setAssistantContent({ followUps: items });
           },
-          onAction: (action) => onActionRef.current?.(action),
+          onAction: (action) => {
+            track('assistant_action', { type: action.type });
+            onActionRef.current?.(action);
+          },
         });
 
         setAssistantContent({ content: reply || 'No verified information available.', streaming: false });
@@ -290,8 +362,41 @@ export default function AssistantLauncher({
         setIsLoading(false);
       }
     },
-    [input, isLoading, messages, triggerSound, later]
+    [openWindows, activeWindow, activeSection, visitCount, triggerSound, later]
   );
+
+  const sendMessage = useCallback(
+    (text?: string) => {
+      const content = (text || input).trim();
+      if (!content || isLoading) return;
+      track('assistant_send');
+      streamReply(content, messages);
+      setInput('');
+    },
+    [input, isLoading, messages, streamReply]
+  );
+
+  const regenerate = useCallback(() => {
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    const lastAssistant = messages[messages.length - 1];
+    if (!lastUser || isLoading) return;
+    if (lastAssistant && lastAssistant.role === 'assistant' && lastAssistant.content && !lastAssistant.streaming) {
+      track('assistant_regenerate');
+      // Replace the trailing answer in place — no duplicated user bubble.
+      const history = messages.filter((m) => m.id !== lastAssistant.id);
+      setMessages(history);
+      streamReply(lastUser.content, history, false);
+    }
+  }, [messages, isLoading, streamReply]);
+
+  const openGreetingAsk = useCallback((query: string) => {
+    track('assistant_greeting_accept');
+    setGreetingVisible(false);
+    setIsOpen(true);
+    triggerSound?.(850, 0.03);
+    // Let the panel mount before sending so the typing indicator shows.
+    later(() => sendMessage(query), 250);
+  }, [sendMessage, triggerSound, later]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -307,8 +412,16 @@ export default function AssistantLauncher({
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
   };
 
+  const handleClose = useCallback(() => {
+    stopSpeaking();
+    abortRef.current?.abort();
+    setIsOpen(false);
+    buttonRef.current?.focus();
+  }, []);
+
   const speakText = (text: string) => {
     if (!window.speechSynthesis) return;
+    track('assistant_voice');
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1;
@@ -328,8 +441,6 @@ export default function AssistantLauncher({
     setCopiedId(id);
     later(() => setCopiedId(null), 2000);
   };
-
-  const isLandingLeft = placement === 'landing-left';
 
   const [isPressed, setIsPressed] = useState(false);
 
@@ -369,13 +480,6 @@ export default function AssistantLauncher({
 
   const motionStyle = isHovering ? { x: mousePosition.x, y: mousePosition.y } : {};
 
-  const handleClose = useCallback(() => {
-    stopSpeaking();
-    abortRef.current?.abort();
-    setIsOpen(false);
-    buttonRef.current?.focus();
-  }, []);
-
   // Dialog semantics: Escape closes; focus moves into the dialog on open
   // and returns to the launcher button on close (handled in handleClose).
   useEffect(() => {
@@ -410,188 +514,225 @@ export default function AssistantLauncher({
     ? 'bg-slate-50 border-slate-200 text-slate-700'
     : 'bg-zinc-900/50 border-zinc-800 text-zinc-200';
 
-  const renderMessages = () => (
-    <>
-      {messages.length === 1 && (
-        <div className="space-y-5">
-          <div className="text-center py-8 px-4">
-            <div
-              className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-5 transition-colors ${
-                isTerminal ? 'bg-[#33ff33]/10 border border-[#33ff33]/20' : 'bg-indigo-500/10 border border-indigo-500/20'
-              }`}
-            >
-              <AssistantGlyph
-                state={aiState}
-                className={`${isTerminal ? 'text-[#33ff33]' : 'text-indigo-400'} w-9 h-9`}
-              />
-            </div>
-            <h3 className={`text-xl font-bold mb-2 tracking-tight ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
-              Farhan's Personal Assistant
-            </h3>
-            <p id="assistant-dialog-description" className={`text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-400'} max-w-xs mx-auto`}>
-              Query research, architecture, or engineering profiles. All responses derive from verified portfolio intelligence.
-            </p>
-          </div>
+  const contextLabel = useMemo(
+    () =>
+      activeSection
+        ? activeSection === 'hero-content'
+          ? 'hero'
+          : activeSection
+        : null,
+    [activeSection]
+  );
 
-          <div className="grid grid-cols-1 gap-2.5 px-2">
-            {QUICK_ACTIONS.map((action) => (
-              <button
-                key={action.label}
-                onClick={() => sendMessage(action.query)}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-left text-sm transition-all cursor-pointer border ${
-                  isLight
-                    ? 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/60 text-slate-700 hover:shadow-sm'
-                    : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/60 text-zinc-300 hover:text-slate-200 hover:shadow-sm'
+  const renderMessages = () => {
+    const lastMsgId = messages[messages.length - 1]?.id;
+    return (
+      <>
+        {messages.length === 1 && (
+          <div className="space-y-5">
+            <div className="text-center py-8 px-4">
+              <div
+                className={`w-24 h-24 mx-auto rounded-2xl overflow-hidden mb-5 transition-colors ${
+                  isTerminal
+                    ? 'bg-[#33ff33]/10 border border-[#33ff33]/20'
+                    : 'bg-indigo-500/10 border border-indigo-500/20'
                 }`}
               >
-                <span
-                  className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
-                    isLight ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-500/10 text-indigo-400'
-                  }`}
-                >
-                  {action.label[0]}
-                </span>
-                <span className="flex-1 font-medium">{action.label}</span>
-                <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <AnimatePresence>
-        {messages.map(
-          (msg) =>
-            messages.length > 1 && (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, ease: 'easeOut' }}
-                className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={`px-4 py-3 rounded-2xl max-w-[88%] border shadow-sm ${
-                    msg.role === 'user' ? userBubble : assistantBubble
-                  }`}
-                >
-                  {msg.streaming && !msg.content ? (
-                    /* Animated typing indicator while awaiting the first token */
-                    <div className="flex items-center gap-1.5 py-0.5" aria-label="Assistant is typing">
-                      {[0, 1, 2].map((i) => (
-                        <motion.span
-                          key={i}
-                          className="w-1.5 h-1.5 rounded-full bg-indigo-400"
-                          animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                          transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
-                        />
-                      ))}
-                    </div>
-                  ) : msg.role === 'assistant' ? (
-                    <MarkdownRenderer content={msg.content} />
-                  ) : (
-                    <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                  )}
-                </div>
-                {msg.role === 'assistant' && msg.content && !msg.streaming && (
-                  <div className="flex items-center gap-2 pl-1">
-                    <button
-                      onClick={() => {
-                        if (isSpeaking) {
-                          stopSpeaking();
-                        } else {
-                          speakText(msg.content);
-                        }
-                      }}
-                      className="text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer p-1"
-                      title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
-                      aria-label={isSpeaking ? 'Stop speaking' : 'Read aloud'}
-                    >
-                      {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    </button>
-                    <button
-                      onClick={() => copyToClipboard(msg.content, msg.id)}
-                      className="text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer p-1"
-                      title="Copy"
-                      aria-label="Copy message"
-                    >
-                      {copiedId === msg.id ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
+                {isTerminal ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <AssistantGlyph state={aiState} className="text-[#33ff33] w-12 h-12" />
                   </div>
+                ) : (
+                  <FarhanAIIcon className="w-full h-full" />
                 )}
-                {/* Verified knowledge sources behind this answer */}
-                {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && !msg.streaming && (
-                  <div className="flex flex-wrap gap-1.5 pl-1">
-                    {msg.sources.slice(0, 4).map((src) =>
-                      src.window ? (
-                        <button
-                          key={src.title}
-                          onClick={() =>
-                            onActionRef.current?.({ type: 'open_window', window: src.window! })
-                          }
-                          className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border transition-all cursor-pointer ${
-                            isLight
-                              ? 'border-slate-200 bg-slate-50 text-slate-500 hover:border-indigo-300 hover:text-indigo-600'
-                              : 'border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-indigo-500/40 hover:text-indigo-300'
-                          }`}
-                          title={`Open ${src.window} window`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          {src.title.length > 28 ? `${src.title.slice(0, 28)}…` : src.title}
-                        </button>
-                      ) : (
-                        <span
-                          key={src.title}
-                          className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
-                            isLight
-                              ? 'border-slate-200 bg-slate-50 text-slate-400'
-                              : 'border-zinc-800/70 bg-zinc-900/40 text-zinc-600'
-                          }`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          {src.title.length > 28 ? `${src.title.slice(0, 28)}…` : src.title}
-                        </span>
-                      )
+              </div>
+              <h3 className={`text-xl font-bold mb-2 tracking-tight ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
+                Farhan AI
+              </h3>
+              <p id="assistant-dialog-description" className={`text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-400'} max-w-xs mx-auto`}>
+                Farhan Kabir's certified neural twin. Every answer is grounded in verified portfolio intelligence and live data.
+              </p>
+              {contextLabel && (
+                <p className={`mt-2 inline-flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+                  isLight ? 'border-indigo-200 bg-indigo-50/60 text-indigo-500' : 'border-indigo-500/20 bg-indigo-500/10 text-indigo-400'
+                }`}>
+                  <Sparkles className="w-3 h-3" />
+                  context: {contextLabel}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5 px-2">
+              {contextualQuestions.map((q, i) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-left text-sm transition-all cursor-pointer border ${
+                    isLight
+                      ? 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/60 text-slate-700 hover:shadow-sm'
+                      : 'border-zinc-800 bg-zinc-900/30 hover:border-zinc-700 hover:bg-zinc-900/60 text-zinc-300 hover:text-slate-200 hover:shadow-sm'
+                  }`}
+                >
+                  <span
+                    className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                      isLight ? 'bg-indigo-100 text-indigo-600' : 'bg-indigo-500/10 text-indigo-400'
+                    }`}
+                  >
+                    {q.replace(/[^a-zA-Z]/g, '')[0]?.toUpperCase() ?? i + 1}
+                  </span>
+                  <span className="flex-1 font-medium">{q}</span>
+                  <ChevronRight className="w-4 h-4 text-zinc-400 shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {messages.map(
+            (msg) =>
+              messages.length > 1 && (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  className={`flex flex-col gap-1.5 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                >
+                  <div
+                    className={`px-4 py-3 rounded-2xl max-w-[88%] border shadow-sm ${
+                      msg.role === 'user' ? userBubble : assistantBubble
+                    }`}
+                  >
+                    {msg.streaming && !msg.content ? (
+                      /* Animated typing indicator while awaiting the first token */
+                      <div className="flex items-center gap-1.5 py-0.5" aria-label="Assistant is typing">
+                        {[0, 1, 2].map((i) => (
+                          <motion.span
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full bg-indigo-400"
+                            animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
+                            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
+                          />
+                        ))}
+                      </div>
+                    ) : msg.role === 'assistant' ? (
+                      <MarkdownRenderer content={msg.content} />
+                    ) : (
+                      <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
-                )}
-              </motion.div>
-            )
-        )}
-      </AnimatePresence>
+                  {msg.role === 'assistant' && msg.content && !msg.streaming && (
+                    <div className="flex items-center gap-2 pl-1">
+                      <button
+                        onClick={() => {
+                          if (isSpeaking) {
+                            stopSpeaking();
+                          } else {
+                            speakText(msg.content);
+                          }
+                        }}
+                        className="text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer p-1"
+                        title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
+                        aria-label={isSpeaking ? 'Stop speaking' : 'Read aloud'}
+                      >
+                        {isSpeaking ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(msg.content, msg.id)}
+                        className="text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer p-1"
+                        title="Copy"
+                        aria-label="Copy message"
+                      >
+                        {copiedId === msg.id ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      {msg.id === lastMsgId && (
+                        <button
+                          onClick={regenerate}
+                          disabled={isLoading}
+                          className="text-zinc-500 hover:text-indigo-400 transition-colors cursor-pointer p-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Regenerate response"
+                          aria-label="Regenerate response"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {/* Verified knowledge sources behind this answer */}
+                  {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && !msg.streaming && (
+                    <div className="flex flex-wrap gap-1.5 pl-1">
+                      {msg.sources.slice(0, 4).map((src) =>
+                        src.window ? (
+                          <button
+                            key={src.title}
+                            onClick={() =>
+                              onActionRef.current?.({ type: 'open_window', window: src.window! })
+                            }
+                            className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border transition-all cursor-pointer ${
+                              isLight
+                                ? 'border-slate-200 bg-slate-50 text-slate-500 hover:border-indigo-300 hover:text-indigo-600'
+                                : 'border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:border-indigo-500/40 hover:text-indigo-300'
+                            }`}
+                            title={`Open ${src.window} window`}
+                          >
+                            <FileText className="w-3 h-3" />
+                            {src.title.length > 28 ? `${src.title.slice(0, 28)}…` : src.title}
+                          </button>
+                        ) : (
+                          <span
+                            key={src.title}
+                            className={`flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-md border ${
+                              isLight
+                                ? 'border-slate-200 bg-slate-50 text-slate-400'
+                                : 'border-zinc-800/70 bg-zinc-900/40 text-zinc-600'
+                            }`}
+                          >
+                            <FileText className="w-3 h-3" />
+                            {src.title.length > 28 ? `${src.title.slice(0, 28)}…` : src.title}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              )
+          )}
+        </AnimatePresence>
 
-      {(() => {
-        const lastDone = [...messages]
-          .reverse()
-          .find((m) => m.role === 'assistant' && m.content && !m.streaming);
-        const showSuggestions = !!lastDone && !isLoading && lastDone.id !== 'welcome' && messages.length > 1;
-        // Prefer model-generated follow-ups; fall back to the static trio.
-        const suggestions = lastDone?.followUps?.length ? lastDone.followUps : FOLLOW_UPS;
-        return showSuggestions ? (
-          <div className="flex flex-wrap gap-2 pl-1 pt-0.5">
-            {suggestions.map((q) => (
-              <button
-                key={q}
-                onClick={() => sendMessage(q)}
-                className={`text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
-                  isLight
-                    ? 'border-indigo-200 bg-indigo-50/60 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-300'
-                    : 'border-zinc-700 bg-zinc-900/40 text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/40'
-                }`}
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        ) : null;
-      })()}
-      <div ref={messagesEndRef} />
-    </>
-  );
+        {(() => {
+          const lastDone = [...messages]
+            .reverse()
+            .find((m) => m.role === 'assistant' && m.content && !m.streaming);
+          const showSuggestions = !!lastDone && !isLoading && lastDone.id !== 'welcome' && messages.length > 1;
+          // Prefer model-generated follow-ups; fall back to the static trio.
+          const suggestions = lastDone?.followUps?.length ? lastDone.followUps : FOLLOW_UPS;
+          return showSuggestions ? (
+            <div className="flex flex-wrap gap-2 pl-1 pt-0.5">
+              {suggestions.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  className={`text-[11px] px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
+                    isLight
+                      ? 'border-indigo-200 bg-indigo-50/60 text-indigo-600 hover:bg-indigo-100 hover:border-indigo-300'
+                      : 'border-zinc-700 bg-zinc-900/40 text-indigo-300 hover:bg-zinc-800 hover:border-indigo-500/40'
+                  }`}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          ) : null;
+        })()}
+        <div ref={messagesEndRef} />
+      </>
+    );
+  };
 
   // Shared dialog chrome — a single implementation rendered into whichever
   // panel variant (desktop floating window vs mobile bottom sheet) is active.
@@ -617,7 +758,7 @@ export default function AssistantLauncher({
         </div>
         <div className={`flex flex-col ${compact ? 'min-w-0' : ''}`}>
           <span className={`text-sm font-bold tracking-tight ${compact ? 'truncate' : ''} ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
-            Farhan's Personal Assistant
+            Farhan AI
           </span>
           <span className={`text-[10px] text-emerald-400 font-mono font-medium ${compact ? 'hidden min-[420px]:inline' : ''}`}>Online</span>
         </div>
@@ -672,7 +813,7 @@ export default function AssistantLauncher({
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Query neural core..."
+          placeholder="Ask Farhan AI anything…"
           rows={1}
           className={`flex-1 resize-none rounded-xl px-4 py-3 text-[13px] outline-none border transition-all ${inputGlass}`}
           style={{ minHeight: '44px', maxHeight: '120px' }}
@@ -700,9 +841,27 @@ export default function AssistantLauncher({
   const dialogProps = {
     role: 'dialog' as const,
     'aria-modal': true as const,
-    'aria-label': "Farhan's Personal Assistant",
+    'aria-label': "Farhan AI",
     'aria-describedby': 'assistant-dialog-description',
   };
+
+  const openPanel = () => {
+    track('assistant_open');
+    setGreetingVisible(false);
+    setIsOpen(true);
+    triggerSound?.(800, 0.03);
+  };
+
+  const statusAnnouncement =
+    aiState === 'thinking'
+      ? 'Farhan AI is thinking'
+      : aiState === 'responding'
+        ? 'Farhan AI is responding'
+        : aiState === 'error'
+          ? 'Farhan AI encountered an error'
+          : aiState === 'success'
+            ? 'Farhan AI has responded'
+            : '';
 
   return (
     <div
@@ -712,6 +871,21 @@ export default function AssistantLauncher({
           : 'left-3 bottom-3 sm:left-4 sm:bottom-4 flex-row-reverse'
       }`}
     >
+      {/* Proactive greeting chip — floats just above the launcher button */}
+      <AnimatePresence>
+        {greetingVisible && (
+          <div className="absolute bottom-16 left-0 w-[300px] max-w-[calc(100vw-2rem)]">
+            <ProactiveGreeting
+              greeting={greeting}
+              isTerminal={isTerminal}
+              isLight={isLight}
+              onAsk={openGreetingAsk}
+              onDismiss={dismissGreeting}
+            />
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {isOpen && (
           isMobile ? (
@@ -753,6 +927,11 @@ export default function AssistantLauncher({
         )}
       </AnimatePresence>
 
+      {/* Live-region status for screen readers */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {statusAnnouncement}
+      </div>
+
       {/* Floating Launcher Button */}
       <button
         ref={buttonRef}
@@ -761,10 +940,7 @@ export default function AssistantLauncher({
         onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={() => {
-          setIsOpen(true);
-          triggerSound?.(800, 0.03);
-        }}
+        onClick={openPanel}
         className={`
           relative flex items-center justify-center cursor-pointer
           rounded-2xl p-0 w-12 h-12
@@ -776,7 +952,7 @@ export default function AssistantLauncher({
           will-change-transform
           active:scale-90
         `}
-        aria-label="Open Farhan's Personal Assistant"
+        aria-label="Open Farhan AI"
         aria-expanded={isOpen}
       >
         <motion.div

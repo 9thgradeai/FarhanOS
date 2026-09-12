@@ -27,6 +27,7 @@ import {
   validateClientAction,
   type AssistantAction,
 } from './tools.js';
+import { buildModePrompt, inferIntentMode, isIntentMode, type IntentMode } from './intents.js';
 
 export { ApiError };
 export type { MediumStory };
@@ -146,7 +147,13 @@ export async function* streamAskTwin(
   rawMessage: unknown,
   rawHistory: unknown,
   rag?: RagSearcher,
-  sessionContext?: { openWindows?: string[]; activeWindow?: string; visitCount?: number }
+  sessionContext?: {
+    openWindows?: string[];
+    activeWindow?: string;
+    activeSection?: string;
+    mode?: string;
+    visitCount?: number;
+  }
 ): AsyncGenerator<AskTwinEvent> {
   const message = validateAskTwinInput(rawMessage, rawHistory);
 
@@ -161,8 +168,11 @@ export async function* streamAskTwin(
 
   let systemPrompt = buildAskTwinSystemPrompt();
   const sources: Array<{ title: string }> = [];
+  let sessionContextBlock = '';
+  let modePrompt = '';
 
-  // Inject session context for contextual awareness
+  // Inject session context for contextual awareness. Kept as a separate block
+  // because RAG retrieval below rebuilds the prompt from scratch.
   if (sessionContext) {
     const contextParts: string[] = [];
     if (sessionContext.openWindows && sessionContext.openWindows.length > 0) {
@@ -171,13 +181,24 @@ export async function* streamAskTwin(
     if (sessionContext.activeWindow) {
       contextParts.push(`Visitor is currently viewing: ${sessionContext.activeWindow}.`);
     }
+    if (sessionContext.activeSection) {
+      contextParts.push(`Visitor is currently browsing the "${sessionContext.activeSection}" section of the landing page. Anchor answers there if relevant.`);
+    }
     if (sessionContext.visitCount && sessionContext.visitCount > 1) {
       contextParts.push(`This is visit #${sessionContext.visitCount} — returning visitor.`);
     }
     if (contextParts.length > 0) {
-      systemPrompt += `\n\nSESSION CONTEXT:\n${contextParts.join('\n')}`;
+      sessionContextBlock = `\n\nSESSION CONTEXT:\n${contextParts.join('\n')}`;
     }
   }
+
+  // Tailor the persona to the detected intent mode (recruiter / developer /
+  // research). The client may hint the mode, but the server always validates
+  // it before it reaches the prompt.
+  const requestedMode = sessionContext?.mode && isIntentMode(sessionContext.mode)
+    ? (sessionContext.mode as IntentMode)
+    : inferIntentMode(message);
+  if (requestedMode) modePrompt = `\n\n${buildModePrompt(requestedMode)}`;
 
   if (rag) {
     try {
@@ -206,6 +227,12 @@ export async function* streamAskTwin(
       console.error('[ask-twin] RAG retrieval failed, falling back to inline prompt', err);
     }
   }
+
+  // Session context and mode shaping are appended last so they survive the
+  // RAG prompt rebuild above, and sit closest to the <user_message> where
+  // instruction influence is strongest.
+  systemPrompt += sessionContextBlock;
+  systemPrompt += modePrompt;
 
   // Source chips reach the UI immediately, before the first token lands.
   if (sources.length > 0) yield { type: 'sources', items: sources };

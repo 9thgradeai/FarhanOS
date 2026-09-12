@@ -143,6 +143,61 @@ describe('streamAskTwin', () => {
     });
   });
 
+  it('adds session context (activeSection, visit) and the mode block to the prompt', async () => {
+    const fetchMock = vi.fn(async () => sseResponse(okGroqStream));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await collectText(
+      streamAskTwin('What should I know before working with Farhan?', [], undefined, {
+        activeSection: 'about',
+        activeWindow: 'projects',
+        openWindows: ['projects', 'research'],
+        mode: 'recruiter',
+        visitCount: 4,
+      })
+    );
+
+    const payload = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body));
+    const system = payload.messages[0].content as string;
+    expect(system).toContain('MODE: RECRUITER DIALOGUE');
+    expect(system).toContain('about');
+    expect(system).toContain('Farhan AI');
+    expect(system).toContain('visit #4');
+    expect(system).toContain('OS windows open: projects, research');
+  });
+
+  it('keeps session context and mode when RAG rebuilds the prompt', async () => {
+    const fetchMock = vi.fn(async () => sseResponse(okGroqStream));
+    vi.stubGlobal('fetch', fetchMock);
+    const rag = {
+      searchKnowledge: vi.fn().mockReturnValue([{ title: 'Research', content: 'Paper data.' }]),
+    };
+
+    await collectText(
+      streamAskTwin('Summarize depression detection research', [], rag, {
+        activeSection: 'research',
+        mode: 'research',
+        visitCount: 2,
+      })
+    );
+
+    const payload = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body));
+    const system = payload.messages[0].content as string;
+    expect(system).toContain('RETRIEVED KNOWLEDGE');
+    expect(system).toContain('MODE: RESEARCH DIALOGUE');
+    expect(system).toContain('"research" section');
+  });
+
+  it('infers the mode server-side when the client sends none', async () => {
+    const fetchMock = vi.fn(async () => sseResponse(okGroqStream));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await collectText(streamAskTwin('Can you explain the perplexity paper?', []));
+
+    const payload = JSON.parse(String((fetchMock.mock.calls[0] as any)[1].body));
+    expect(payload.messages[0].content as string).toContain('MODE: RESEARCH DIALOGUE');
+  });
+
   it('dispatches validated client actions and feeds tool results back', async () => {
     // Turn 1: model requests open_os_window; turn 2: final narration;
     // turn 3 (followups): non-stream JSON call.

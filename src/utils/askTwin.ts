@@ -22,6 +22,8 @@ export interface AskTwinOptions {
   context?: {
     openWindows?: string[];
     activeWindow?: string;
+    activeSection?: string;
+    mode?: string;
     visitCount?: number;
   };
   onDelta?: (fullText: string) => void;
