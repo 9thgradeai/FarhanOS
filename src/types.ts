@@ -23,6 +23,8 @@ export interface Paper {
   journal: string;
   year: number;
   abstract: string;
+  /** Plain-language key finding, quotable on-site for readers and AI engines. */
+  takeaway?: string;
   methodology: string;
   dataset: string;
   pipeline: string;

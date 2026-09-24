@@ -467,6 +467,11 @@ export default function App() {
   const currentPosRef = useRef({ x: 0, y: 0 });
   const pendingPosRef = useRef<{ x: number; y: number } | null>(null);
   const dragRafRef = useRef<number | null>(null);
+  // Bottom-sheet gesture state (mobile): vertical swipe distance on the title bar.
+  const isSheetDragRef = useRef(false);
+  const sheetDyRef = useRef(0);
+  // Indirection: minimizeWindow is declared below the drag handlers.
+  const minimizeWindowRef = useRef<((windowId: string) => void) | null>(null);
 
   // Keep at least part of the title bar inside the viewport
   const clampWindowPos = useCallback((x: number, y: number) => {
@@ -496,8 +501,20 @@ export default function App() {
 
   const handleDragStart = (windowId: string, e: React.PointerEvent) => {
     if (windowPositions[windowId]?.isMaximized) return;
-    // Mobile/tablet portrait uses a fixed full-area layout — nothing to drag.
-    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
+    // Mobile uses a fixed bottom-sheet layout: track the vertical swipe so a
+    // downward pull minimizes the sheet (handled in move/end below).
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setFocusedWindow(windowId);
+      draggedWindowRef.current = windowId;
+      dragPointerIdRef.current = e.pointerId;
+      lastPointerRef.current = { x: e.clientX, y: e.clientY };
+      isSheetDragRef.current = true;
+      sheetDyRef.current = 0;
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch { /* ignore */ }
+      return;
+    }
     e.preventDefault();
     setFocusedWindow(windowId);
 
@@ -521,6 +538,13 @@ export default function App() {
     const activeWindow = draggedWindowRef.current;
     if (!activeWindow || e.pointerId !== dragPointerIdRef.current) return;
 
+    // Sheet gesture: accumulate vertical pull only; the sheet itself stays put.
+    if (isSheetDragRef.current) {
+      sheetDyRef.current += e.clientY - lastPointerRef.current.y;
+      lastPointerRef.current = { x: e.clientX, y: e.clientY };
+      return;
+    }
+
     const dx = e.clientX - lastPointerRef.current.x;
     const dy = e.clientY - lastPointerRef.current.y;
     lastPointerRef.current = { x: e.clientX, y: e.clientY };
@@ -535,6 +559,17 @@ export default function App() {
 
   const handleDragEnd = useCallback((e: React.PointerEvent) => {
     if (draggedWindowRef.current == null || e.pointerId !== dragPointerIdRef.current) return;
+    // Sheet gesture: a decisive downward pull minimizes the sheet.
+    if (isSheetDragRef.current) {
+      const pulledDown = sheetDyRef.current > 90;
+      const activeWindow = draggedWindowRef.current;
+      isSheetDragRef.current = false;
+      sheetDyRef.current = 0;
+      draggedWindowRef.current = null;
+      dragPointerIdRef.current = null;
+      if (pulledDown && activeWindow) minimizeWindowRef.current?.(activeWindow);
+      return;
+    }
     if (dragRafRef.current != null) {
       cancelAnimationFrame(dragRafRef.current);
       dragRafRef.current = null;
@@ -662,6 +697,9 @@ export default function App() {
       return rest.length > 0 ? rest[rest.length - 1] : prev;
     });
   }, [openWindows, minimizedWindows, focusWindow]);
+
+  // Kept in sync every render so gesture handlers above can minimize.
+  minimizeWindowRef.current = minimizeWindow;
 
   const toggleMaximize = useCallback((windowId: string) => {
     triggerSound(800, 0.04);
@@ -1427,7 +1465,7 @@ export default function App() {
               style={windowStyle}
               onClick={() => { setFocusedWindow(winId); triggerSound(400, 0.01); }}
               onAnimationEnd={() => handleAnimationEnd(winId)}
-               className={`flex flex-col rounded-xl overflow-hidden shadow-2xl ${draggedWindow === winId ? '' : 'transition-all duration-150'} transform ${styleSet.glass} ${isFocused ? 'ring-2 ring-sky-500/35 scale-[1.002]' : 'opacity-90'} ${windowReady[winId] ? '' : 'animate-window-open'}`}
+               className={`flex flex-col rounded-xl overflow-hidden shadow-2xl ${draggedWindow === winId ? '' : 'transition-all duration-150'} transform ${styleSet.glass} ${isFocused ? 'ring-2 ring-sky-500/35 scale-[1.002]' : 'opacity-90'} ${windowReady[winId] ? '' : 'animate-window-open'} ${isMobile ? 'max-md:rounded-t-3xl max-md:border-t-2 max-md:border-indigo-500/25' : ''}`}
             >
 
               {/* Window Bar Header */}
@@ -1438,8 +1476,10 @@ export default function App() {
                 onPointerMove={handleDragMove}
                 onPointerUp={handleDragEnd}
                 onPointerCancel={handleDragEnd}
-                className={`h-10 md:h-9 px-3 flex items-center justify-between md:cursor-move touch-none select-none focus:outline-none ${styleSet.windowHeader}`}
+                className={`relative h-10 md:h-9 px-3 flex items-center justify-between md:cursor-move touch-none select-none focus:outline-none ${styleSet.windowHeader}`}
               >
+                {/* Bottom-sheet grab handle (mobile only; pull down to minimize) */}
+                <span aria-hidden="true" className="md:hidden absolute top-1 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-zinc-600/80" />
                 <div className="flex items-center gap-2 font-semibold tracking-tight text-xs">
                   <WinIcon className="w-3.5 h-3.5 opacity-80" />
                   <span>{desktopIco ? desktopIco.label : 'FarhanOS Sandbox'}</span>

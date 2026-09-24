@@ -48,6 +48,14 @@ export default function ResearchWindow({ styleSet, selectedPaper, setSelectedPap
           <p className="text-slate-400 font-sans leading-normal text-[10px]">{selectedPaper.abstract}</p>
         </div>
 
+        {/* Plain-language key finding — quotable on-site. */}
+        {selectedPaper.takeaway && (
+          <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3 relative select-text">
+            <span className="font-bold text-emerald-300 text-[10px] block uppercase tracking-wide mb-1">Key Finding:</span>
+            <p className="text-slate-300 font-sans leading-normal text-[10px]">{selectedPaper.takeaway}</p>
+          </div>
+        )}
+
         {/* Interactive block representing high level engineering classification pipelines */}
         <div>
           <span className={styleSet.panelHeader}>CLASSIFIER PIPELINE DATAFLOW</span>

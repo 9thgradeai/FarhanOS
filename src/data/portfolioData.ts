@@ -377,6 +377,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'UHI Feature Gain', score: '+12.3%' },
         { metric: 'Inference Latency', score: '8.4ms' }
       ],
+      takeaway: 'CNN-LSTM models fused with urban heat-island features forecast building energy use at 94.8% accuracy and hold up under extreme-weather scenarios.',
       citation: 'Kabir, F., Ahmed, T., & Rahman, M. (2026). Deep Learning-Based Predictive Modeling for Energy Consumption in Climate-Resilient Urban Structures. ISEE 2026.'
     },
     {
@@ -395,6 +396,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'BIM Sync Latency', score: '45ms' },
         { metric: 'MPC Comfort Score', score: '0.934' }
       ],
+      takeaway: 'Camera-based occupancy detection fused with BIM digital twins cut wasted building energy by 18.7% without reducing occupant comfort.',
       citation: 'Kabir, F., Zaman, S., & Reza, A. (2026). Integrating Computer Vision and Building Information Modeling (BIM) for Real-Time Monitoring of Operational Energy Efficiency. ISEE 2026.'
     },
     {
@@ -413,6 +415,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'Latency overhead', score: '4.5ms' },
         { metric: 'Jailbreak F1 Score', score: '0.935' }
       ],
+      takeaway: 'Scoring input perplexity flags adversarial jailbreak prompts at 94.2% accuracy with 4.5ms overhead — before they ever reach the model.',
       citation: 'Khan, R. A., Momo, T. T., Kabir, F., & Shah, F. M. (2025). Did the Prompt Break the Model?: Perplexity-Based Detection of Adversarial Attacks on LLMs. 2025 28th ICCIT (IEEE).'
     },
     {
@@ -431,6 +434,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'Posture classification', score: '93.2%' },
         { metric: 'Evaluation Agreement', score: '0.87 (Kappa)' }
       ],
+      takeaway: 'Late fusion of Wav2Vec transcripts, MediaPipe posture, and BERT classifiers scored live interviews at 91.6% accuracy with 0.87 kappa agreement to HR professionals.',
       citation: 'Kabir, F., Shah, M. A. R., & Biswas, R. (2025). AI-Driven Live Interview System for Real-Time Candidate Evaluation Using NLP and Computer Vision. 2025 28th ICCIT (IEEE).'
     },
     {
@@ -449,6 +453,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'Training latency', score: '1.2 hrs' },
         { metric: 'Inference speed', score: '3.8ms' }
       ],
+      takeaway: 'Fine-tuned BERT and RoBERTa on 90,000 social posts beat traditional classifiers at detecting clinical mental distress from text (RoBERTa F1 0.908).',
       citation: 'Kabir, F., Khan, M. K. H., & Rabby, F. (2025). Emotion Detection From Textual Data Using Natural Language Processing and Machine Learning Techniques. 2025 ECCE (IEEE).'
     },
     {
@@ -467,6 +472,7 @@ export const portfolioData: PortfolioData = {
         { metric: 'Sensitivity', score: '0.893' },
         { metric: 'Specificity', score: '0.942' }
       ],
+      takeaway: 'RoBERTa fine-tuned on 120,000 clinician-annotated Reddit posts reached 0.914 F1 for depression-screening support, with 0.893 sensitivity.',
       citation: 'Kabir, F., Hossain, M. A., Rahman, A. F. M. M., & Mishu, S. Z. (2023). Depression Detection From Social Media Textual Data Using Natural Language Processing and Machine Learning Techniques. 2023 26th ICCIT (IEEE).'
     }
   ],

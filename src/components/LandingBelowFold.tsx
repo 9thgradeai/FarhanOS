@@ -7,6 +7,7 @@ import {
   ChevronDown, Layers, Globe, Rocket, Star, GitFork
 } from 'lucide-react';
 import { portfolioData } from '../data/portfolioData';
+import { MOTION } from '../utils/motion';
 import { useLandingPage } from './LandingPageContext';
 import { track } from '../utils/analytics';
 import { getApiBaseUrl } from '../utils/apiConfig';
@@ -38,16 +39,16 @@ function TimelineCard({ item, idx, theme, prefersReducedMotion }: TimelineCardPr
     <motion.div
       initial={prefersReducedMotion ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 50, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      viewport={MOTION.revealViewport}
+      transition={{ ...MOTION.springSoft }}
       className={`flex flex-col md:flex-row items-start ${isLeft ? 'md:flex-row-reverse' : ''} relative`}
     >
       {/* Central Node Circle */}
       <motion.div 
         initial={{ scale: 0 }}
         whileInView={{ scale: 1 }}
-        viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: Math.min(idx * 0.06, 0.3) }}
+        viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft, delay: Math.min(idx * 0.06, 0.3) }}
                 className="absolute left-[21px] md:left-1/2 -translate-x-1/2 flex items-center justify-center z-20"
       >
         <div className="w-10 h-10 rounded-full border border-zinc-800 bg-zinc-950 flex items-center justify-center shadow-lg border-cyan-400/80 scale-100">
@@ -66,7 +67,7 @@ function TimelineCard({ item, idx, theme, prefersReducedMotion }: TimelineCardPr
       <div className="w-full md:w-[46%] pl-12 md:pl-0">
         <motion.div 
           whileHover={{ y: -4, opacity: 0.95 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          transition={{ ...MOTION.springSoft }}
           className={`p-6 md:p-8 rounded-2xl border backdrop-blur-md relative group ${theme === 'light' 
             ? 'bg-white/80 border-slate-200 shadow-lg hover:border-indigo-400 hover:shadow-indigo-500/5' 
             : 'bg-zinc-950/45 border-zinc-900 shadow-2xl hover:border-zinc-850 hover:shadow-cyan-500/5'}`}
@@ -100,8 +101,8 @@ function TimelineCard({ item, idx, theme, prefersReducedMotion }: TimelineCardPr
                 key={bIdx}
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: bIdx * 0.05 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft, delay: bIdx * 0.05 }}
                 className="flex items-start text-[11px] leading-relaxed font-sans text-zinc-400 select-text"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-400/80 mt-1.5 mr-2.5 shrink-0" />
@@ -114,8 +115,8 @@ function TimelineCard({ item, idx, theme, prefersReducedMotion }: TimelineCardPr
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="flex flex-wrap gap-1.5 pt-4 border-t border-zinc-900/60 select-none"
           >
             {item.technologies.map((t: string, tIdx: number) => (
@@ -123,8 +124,8 @@ function TimelineCard({ item, idx, theme, prefersReducedMotion }: TimelineCardPr
                 key={t}
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 400, damping: 20, delay: tIdx * 0.05 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSnappy, delay: tIdx * 0.05 }}
                 className="px-2 py-0.5 rounded-md text-[9px] font-mono bg-zinc-950/80 text-zinc-400 border border-zinc-900"
               >
                 {t}
@@ -551,8 +552,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-indigo-500 shadow-[0_0_8px_#6366f1]" />
@@ -565,8 +566,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="lg:col-span-7 space-y-6 text-zinc-400 font-sans text-xs sm:text-sm leading-relaxed"
           >
             <div>
@@ -591,8 +592,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.1, delayChildren: 0.2 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft, staggerChildren: 0.1, delayChildren: 0.2 }}
             className="lg:col-span-5 grid grid-cols-2 gap-4"
           >
              {[
@@ -604,7 +605,7 @@ function LandingBelowFold() {
               <motion.div
                 key={i}
                 whileHover={{ y: -4, opacity: 0.95 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ ...MOTION.springSoft }}
                 className={`bg-zinc-950/45 border border-zinc-900 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 backdrop-blur-md ${styleSet.statCardGlow}`}
               >
                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">{stat.label}</span>
@@ -625,8 +626,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-sky-400 shadow-[0_0_8px_#38bdf8]" />
@@ -638,8 +639,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex flex-wrap items-center gap-1.5 font-mono text-[9.5px]"
         >
           {(['All', 'AI/ML', 'Frontend', 'Backend', 'Database', 'DevOps'] as const).map((cat) => (
@@ -647,7 +648,7 @@ function LandingBelowFold() {
               key={cat}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              transition={{ ...MOTION.springSnappy }}
                 onClick={() => setActiveTab(cat)}
               className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-bold ${
                 activeTab === cat ? styleSet.activeTabBtn : styleSet.tabBtn
@@ -662,15 +663,15 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.08, delayChildren: 0.1 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft, staggerChildren: 0.08, delayChildren: 0.1 }}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
         >
           {filteredSkills.map((skill) => (
             <motion.div
               key={skill.name}
               whileHover={{ y: -4, opacity: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              transition={{ ...MOTION.springSoft }}
               className={`bg-zinc-950/45 border border-zinc-900/80 p-4.5 rounded-2xl hover:border-zinc-800 transition-all font-mono`}
             >
               <div className="flex justify-between items-center text-[10px] mb-2.5">
@@ -688,7 +689,7 @@ function LandingBelowFold() {
                 <motion.div 
                   initial={{ width: 0 }}
                   whileInView={{ width: `${skill.weight * 20}%` }}
-                  viewport={{ once: true, margin: "-80px" }}
+                  viewport={MOTION.revealViewport}
                   transition={{ type: "spring", stiffness: 100, damping: 20 }}
                   className={`h-full bg-gradient-to-r ${styleSet.skillBar} rounded-full`}
                 />
@@ -705,8 +706,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-green-500 shadow-[0_0_8px_#22c55e]" />
@@ -726,8 +727,8 @@ function LandingBelowFold() {
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.1 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, delay: i * 0.1 }}
               whileHover={{ y: -4, scale: 1.02 }}
               className={`bg-zinc-950/45 border border-zinc-900 p-5 rounded-2xl flex flex-col justify-between backdrop-blur-md ${styleSet.statCardGlow}`}
             >
@@ -745,8 +746,8 @@ function LandingBelowFold() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="space-y-4"
         >
           <h3 className={`text-[10px] font-mono font-bold uppercase tracking-widest ${theme === 'light' ? 'text-slate-600' : 'text-zinc-400'}`}>Featured Repositories</h3>
@@ -764,8 +765,8 @@ function LandingBelowFold() {
                 rel="noopener noreferrer"
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.1 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft, delay: i * 0.1 }}
                 whileHover={{ x: 4, borderColor: "rgba(99, 102, 241, 0.5)" }}
                 className={`flex items-center justify-between p-4 rounded-xl border ${theme === 'light' ? 'border-slate-200 bg-white/50 hover:bg-slate-50' : 'border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900/60'} transition-all group`}
               >
@@ -795,8 +796,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-violet-500 shadow-[0_0_8px_#8b5cf6]" />
@@ -818,8 +819,8 @@ function LandingBelowFold() {
               key={i}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.08 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, delay: i * 0.08 }}
               whileHover={{ y: -4, scale: 1.02 }}
               className={`bg-zinc-950/45 border border-zinc-900 p-5 rounded-2xl backdrop-blur-md ${styleSet.statCardGlow}`}
             >
@@ -853,8 +854,8 @@ function LandingBelowFold() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className={`p-6 rounded-2xl border ${theme === 'light' ? 'border-slate-200 bg-white/50' : 'border-zinc-800 bg-zinc-950/40'}`}
         >
           <div className="flex items-center justify-between mb-4">
@@ -895,8 +896,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-orange-500 shadow-[0_0_8px_#f97316]" />
@@ -952,8 +953,8 @@ function LandingBelowFold() {
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.1 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, delay: i * 0.1 }}
               whileHover={{ y: -4, scale: 1.01 }}
               className={`relative overflow-hidden rounded-2xl border ${theme === 'light' ? 'border-slate-200 bg-white/70' : 'border-zinc-800 bg-zinc-950/60'} backdrop-blur-md group`}
             >
@@ -1016,8 +1017,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-cyan-500 shadow-[0_0_8px_#06b6d4]" />
@@ -1029,8 +1030,8 @@ function LandingBelowFold() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className={`relative overflow-hidden rounded-2xl border ${theme === 'light' ? 'border-slate-200 bg-white' : 'border-zinc-800 bg-zinc-950'}`}
         >
           {/* Browser Chrome */}
@@ -1135,8 +1136,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-emerald-500 shadow-[0_0_8px_#10b981]" />
@@ -1153,16 +1154,16 @@ function LandingBelowFold() {
                 key={i}
                 initial={{ opacity: 0, x: isLeft ? -30 : 30 }}
                 whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.1 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft, delay: i * 0.1 }}
                 className="relative pl-8 sm:pl-12 group select-text"
               >
                 {/* Glowing timeline node */}
                 <motion.div 
                   initial={{ scale: 0.5, opacity: 0 }}
                   whileInView={{ scale: 1, opacity: 1 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   whileHover={{ scale: 1.2, opacity: 0.95 }}
                   className="absolute left-[-5.5px] top-1.5 w-2.5 h-2.5 rounded-full bg-zinc-950 border-2 border-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)] transition-all duration-300"
                 />
@@ -1171,13 +1172,13 @@ function LandingBelowFold() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className="flex flex-wrap items-center gap-2 mb-1"
                 >
                   <motion.span 
                     whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                    transition={{ ...MOTION.springSnappy }}
                     className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-extrabold ${styleSet.badgeStyle}`}
                   >
                     {item.year}
@@ -1189,8 +1190,8 @@ function LandingBelowFold() {
                 <motion.h3 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className={`text-sm md:text-base font-extrabold tracking-tight ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}
                 >
                   {item.title}
@@ -1200,8 +1201,8 @@ function LandingBelowFold() {
                 <motion.p 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className="text-[11px] sm:text-xs text-zinc-500 font-sans mt-2 max-w-2xl leading-relaxed"
                 >
                   {item.role} {item.description}
@@ -1211,8 +1212,8 @@ function LandingBelowFold() {
                 <motion.ul 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className="mt-3.5 space-y-2 max-w-2xl font-sans text-[11px] text-zinc-400"
                 >
                   {item.achievements.map((ach, j) => (
@@ -1220,8 +1221,8 @@ function LandingBelowFold() {
                       key={j}
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20, delay: j * 0.05 }}
+                      viewport={MOTION.revealViewport}
+                      transition={{ ...MOTION.springSoft, delay: j * 0.05 }}
                       className="flex items-start gap-2 leading-relaxed"
                     >
                       <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${theme === 'light' ? 'text-indigo-600' : 'text-[#00ffcc]'}`} />
@@ -1234,8 +1235,8 @@ function LandingBelowFold() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className="flex flex-wrap gap-1 mt-4"
                 >
                   {item.technologies.map((tech, idx) => (
@@ -1243,8 +1244,8 @@ function LandingBelowFold() {
                       key={tech}
                       initial={{ opacity: 0, scale: 0 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20, delay: idx * 0.05 }}
+                      viewport={MOTION.revealViewport}
+                      transition={{ ...MOTION.springSnappy, delay: idx * 0.05 }}
                       className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zinc-950 border border-zinc-900/60 text-zinc-500"
                     >
                       {tech}
@@ -1264,8 +1265,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
@@ -1277,8 +1278,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           ref={timelineRef} 
           className="relative"
         >
@@ -1288,7 +1289,7 @@ function LandingBelowFold() {
             ref={progressLineRef}
             initial={{ scaleY: 0 }}
             whileInView={{ scaleY: 1 }}
-            viewport={{ once: true, margin: "-80px" }}
+            viewport={MOTION.revealViewport}
             transition={{ duration: 1.5, ease: "easeOut" }}
             className="absolute left-[21px] md:left-1/2 top-0 bottom-24 w-[2px] bg-gradient-to-b from-cyan-400 to-purple-600 -translate-x-1/2 origin-top pointer-events-none z-10"
             style={{ transformOrigin: 'top' }}
@@ -1310,8 +1311,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-purple-500 shadow-[0_0_8px_#a855f7]" />
@@ -1340,8 +1341,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
           {visibleProjects.map((project, i) => (
@@ -1381,6 +1382,7 @@ function LandingBelowFold() {
               year: 2026,
               publisher: "ISEE",
               abstract: "Tackling climate-resilient energy prediction by fusing CNN-LSTM models with urban heat island features. This paper presents a deep learning-based predictive modeling framework for forecasting energy consumption in climate-resilient urban structures. By integrating Convolutional Neural Networks (CNN) with Long Short-Term Memory (LSTM) architectures and augmenting them with urban heat island geospatial features, the model captures complex spatial-temporal dependencies that traditional approaches miss. The framework is validated against projected climate scenarios, demonstrating robust generalization across extreme weather events and urban morphology variations.",
+              takeaway: "Fusing CNN-LSTM models with urban heat-island features captures spatial-temporal energy patterns that traditional approaches miss — validated across extreme-weather scenarios.",
               link: "#research",
               image: "/research-images/energy-consumption-prediction.svg",
               color: "from-amber-600 to-emerald-600",
@@ -1393,6 +1395,7 @@ function LandingBelowFold() {
               year: 2026,
               publisher: "ISEE",
               abstract: "Engineering an end-to-end smart-building workflow utilizing computer vision, digital twins, and model-predictive control. This paper proposes an integrated framework that combines real-time computer vision occupancy detection, Building Information Modeling (BIM) digital twin synchronization, and Model-Predictive Control (MPC) to continuously monitor and optimize operational energy efficiency in commercial buildings. The system fuses visual spatial data with structural BIM repositories to generate actionable energy insights, reducing wasted consumption without compromising occupant comfort.",
+              takeaway: "Real-time occupancy detection fused with BIM digital twins generates actionable energy insights, cutting waste without compromising occupant comfort.",
               link: "#research",
               image: "/research-images/cv-bim-energy-efficiency.svg",
               color: "from-cyan-600 to-blue-600",
@@ -1405,6 +1408,7 @@ function LandingBelowFold() {
               year: 2025,
               publisher: "IEEE",
               abstract: "This paper presents an AI-driven live interview system designed for real-time evaluation of candidates by integrating Natural Language Processing (NLP) and Computer Vision techniques. The system utilizes OpenAI's Whisper model for high-fidelity speech-to-text transcription, ensuring precise capture of verbal responses. Semantic analysis is performed using BERT embeddings to evaluate the contextual relevance, coherence, and intent of candidate answers. Concurrently, a Convolutional Neural Network (CNN) trained on the RAF-DB dataset is employed for real-time facial emotion recognition, identifying emotions such as happiness, sadness, anger, fear, surprise, disgust, and neutrality. A simulated study involving 50 candidates was conducted to assess system performance in terms of response accuracy, processing latency, semantic coherence, and emotion recognition reliability. Experimental results demonstrate that the system achieves an average accuracy of 93.51%, with a mean response latency of 1.5 seconds, and reliably captures emotional engagement. By combining multimodal data including speech, text, and visual cues, the proposed framework offers a comprehensive, objective, and scalable approach to candidate assessment.",
+              takeaway: "Combining Whisper transcripts, BERT semantics, and facial emotion recognition, the system assessed candidates at 93.51% accuracy with 1.5-second latency.",
               link: "https://ieeexplore.ieee.org/document/11491403",
               image: "/research-images/interview-system.svg",
               color: "from-indigo-600 to-cyan-600"
@@ -1416,6 +1420,7 @@ function LandingBelowFold() {
               year: 2025,
               publisher: "IEEE",
               abstract: "Emotion detection is the process of identifying and interpreting emotional cues in data to understand a user's mood or sentiment. In textual data, emotion detection has wide-ranging applications, such as analyzing sentiments on social media, evaluating customer feedback, and enhancing user experiences on digital platforms. This paper presents a machine learning-based approach for classifying emotions in text using natural language processing (NLP) techniques. The study utilizes a publicly available dataset from Kaggle, which includes labeled samples representing various emotional expressions. To achieve accurate classification, the methodology begins with text preprocessing, such as removing stopwords, punctuation, and special characters, ensuring cleaner data for analysis. Feature extraction techniques, including CountVectorizer and Term Frequency-Inverse Document Frequency (TF-IDF), are then employed to transform the raw text into meaningful numerical features. These techniques highlight patterns and associations in the text, effectively capturing the nuances of different emotional expressions. Several machine learning models were trained and evaluated using key performance metrics, such as accuracy and precision, to determine the most effective classifier for emotion detection. The results demonstrate the robustness of our approach in recognizing subtle emotional variations, providing reliable insights into textual data.",
+              takeaway: "Classical NLP pipelines with TF-IDF features proved robust at recognizing subtle emotional variations in social text.",
               link: "https://ieeexplore.ieee.org/document/11013284",
               image: "/research-images/emotion-detection.svg",
               color: "from-purple-600 to-pink-600"
@@ -1427,6 +1432,7 @@ function LandingBelowFold() {
               year: 2023,
               publisher: "IEEE",
               abstract: "Depression, a widespread mental health condition with substantial personal and societal impacts, necessitates early detection for effective intervention. The focus of this thesis is crafting a dependable and precise system to identify depression from social media text, employing natural language processing (NLP) and machine learning (ML). Drawing from diverse social media posts, both from individuals with and without depression, the primary aim is to preprocess this textual data effectively. NLP techniques, including tokenization, stemming, N-gram, Countvectorizer analysis, and TF-IDF, convert raw content into meaningful representations capturing linguistic and emotional facets of depression. Utilizing the preprocessed data, machine learning algorithms acquire discriminating patterns through feature extraction. Diverse ML techniques—Stochastic Gradient Descent (SGD), Naive Bayes (NB), Decision Tree (DT), Random Forest (RF), Support Vector Machines (SVM), KNearest Neighbor (KNN), Multi-Layer Perceptron (MLP), etc.—are employed. Trained on annotated data and extracted attributes, these algorithms discern depressive from nondepressive social media posts. Model performance assessment incorporates metrics like accuracy, precision, recall, and F1-score. Results underscore the efficacy of this approach in detecting depression from social media text.",
+              takeaway: "Machine-learning classifiers trained on annotated social posts reliably distinguished depressive from non-depressive language for early-intervention support.",
               link: "https://ieeexplore.ieee.org/document/10441612",
               image: "/research-images/depression-detection.svg",
               color: "from-emerald-600 to-teal-600"
@@ -1490,6 +1496,13 @@ function LandingBelowFold() {
                     {paper.abstract}
                   </p>
 
+                  {paper.takeaway && (
+                    <p className="mt-3 border-l-2 border-emerald-500/60 pl-3 text-[11px] sm:text-xs text-zinc-300 font-sans leading-relaxed select-text">
+                      <span className="font-bold text-emerald-400">Key finding: </span>
+                      {paper.takeaway}
+                    </p>
+                  )}
+
                   <div className="mt-6 pt-4 border-t border-zinc-900/60 select-none">
                     <a 
                       href={paper.link} 
@@ -1516,8 +1529,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
@@ -1530,8 +1543,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="text-center py-10 bg-zinc-950/20 border border-zinc-900/80 rounded-3xl p-6 font-mono text-zinc-550 text-xs"
           >
             <span className="text-zinc-400">⏳ Synchronizing narrative telemetry vectors…</span>
@@ -1541,8 +1554,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.15, delayChildren: 0.1 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft, staggerChildren: 0.15, delayChildren: 0.1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {articles.slice(0, 6).map((article, idx) => {
@@ -1551,7 +1564,7 @@ function LandingBelowFold() {
                 <motion.div
                   key={article.id}
                   whileHover={{ y: -4, scale: 1.01 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  transition={{ ...MOTION.springSoft }}
                   className={`bg-[#0b0c14]/55 border border-zinc-900/80 p-6 rounded-3xl flex flex-col justify-between hover:border-amber-500/30 hover:shadow-[0_10px_35px_rgba(245,158,11,0.04)] transition-all duration-300 group select-text ${
                     isFirst ? 'md:col-span-2 lg:col-span-1' : ''
                   }`}
@@ -1561,7 +1574,7 @@ function LandingBelowFold() {
                     <div className="flex items-center justify-between font-mono text-[9px]">
                       <motion.span 
                         whileHover={{ scale: 1.05, rotate: -2 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                        transition={{ ...MOTION.springSnappy }}
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${
                           theme === 'light' ? 'bg-amber-100 text-amber-800 border-amber-250' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
                         }`}
@@ -1576,8 +1589,8 @@ function LandingBelowFold() {
                       <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-80px" }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        viewport={MOTION.revealViewport}
+                        transition={{ ...MOTION.springSoft }}
                         whileHover={{ scale: 1.02 }}
                         className="w-full h-36 rounded-2xl overflow-hidden border border-zinc-900 bg-zinc-950 relative"
                       >
@@ -1601,8 +1614,8 @@ function LandingBelowFold() {
                     <motion.h3 
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      viewport={MOTION.revealViewport}
+                      transition={{ ...MOTION.springSoft }}
                       className={`text-xs sm:text-sm font-extrabold group-hover:text-amber-400 transition-colors leading-snug select-text ${
                         theme === 'light' ? 'text-slate-800' : 'text-white'
                       }`}
@@ -1613,8 +1626,8 @@ function LandingBelowFold() {
                     <motion.p 
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-80px" }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      viewport={MOTION.revealViewport}
+                      transition={{ ...MOTION.springSoft }}
                       className="text-[11px] leading-relaxed text-zinc-400 font-sans select-text"
                     >
                       {article.excerpt}
@@ -1625,7 +1638,7 @@ function LandingBelowFold() {
                     <motion.div 
                       initial={{ opacity: 0 }}
                       whileInView={{ opacity: 1 }}
-                      viewport={{ once: true, margin: "-80px" }}
+                      viewport={MOTION.revealViewport}
                       whileHover={{ opacity: 1 }}
                       className="flex items-center gap-2 text-[10px] font-mono text-zinc-500"
                     >
@@ -1637,7 +1650,7 @@ function LandingBelowFold() {
                       <motion.button 
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                        transition={{ ...MOTION.springSnappy }}
                         onClick={() => {
                           if (onOpenArticleDirectly) {
                             onOpenArticleDirectly(article);
@@ -1654,7 +1667,7 @@ function LandingBelowFold() {
                         <motion.a 
                           whileHover={{ scale: 1.1, rotate: 5 }}
                           whileTap={{ scale: 0.95 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                          transition={{ ...MOTION.springSnappy }}
                           href={article.link} 
                           target="_blank" 
                           rel="noopener noreferrer"
@@ -1681,8 +1694,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-amber-500 shadow-[0_0_8px_#f59e0b]" />
@@ -1694,15 +1707,15 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.15, delayChildren: 0.1 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft, staggerChildren: 0.15, delayChildren: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           {certifications.map((cert, i) => (
             <motion.div
               key={i}
               whileHover={{ y: -4, opacity: 0.95, borderColor: theme === 'light' ? 'rgba(99,102,241,0.4)' : 'rgba(245,158,11,0.4)' }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              transition={{ ...MOTION.springSoft }}
               className="bg-zinc-950/45 border border-zinc-900 p-6 rounded-2xl flex flex-col justify-between hover:border-zinc-800 transition-all select-text"
             >
               <div>
@@ -1714,8 +1727,8 @@ function LandingBelowFold() {
                 <motion.h3 
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-80px" }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  viewport={MOTION.revealViewport}
+                  transition={{ ...MOTION.springSoft }}
                   className={`text-xs sm:text-sm font-extrabold leading-snug flex items-start gap-2 ${theme === 'light' ? 'text-slate-850' : 'text-slate-100'}`}
                 >
                   <Award className={`w-4 h-4 mt-0.5 flex-shrink-0 ${theme === 'light' ? 'text-indigo-650' : 'text-amber-400'}`} />
@@ -1726,8 +1739,8 @@ function LandingBelowFold() {
               <motion.div 
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft }}
                 className="flex flex-wrap gap-1 mt-5 pt-4 border-t border-zinc-900/50"
               >
                 {cert.skills.map((s, idx) => (
@@ -1735,8 +1748,8 @@ function LandingBelowFold() {
                     key={s}
                     initial={{ opacity: 0, scale: 0 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true, margin: "-80px" }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20, delay: idx * 0.05 }}
+                    viewport={MOTION.revealViewport}
+                    transition={{ ...MOTION.springSnappy, delay: idx * 0.05 }}
                     className="text-[7.8px] font-mono px-1.5 py-0.5 rounded-md bg-black/40 border border-zinc-900 text-zinc-500"
                   >
                     {s}
@@ -1755,8 +1768,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-rose-500 shadow-[0_0_8px_#f43f5e]" />
@@ -1768,8 +1781,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           whileHover={{ scale: 1.02, opacity: 0.95 }}
           onMouseEnter={() => setTestimonialPaused(true)}
           onMouseLeave={() => setTestimonialPaused(false)}
@@ -1782,7 +1795,7 @@ function LandingBelowFold() {
         >
           <motion.div 
             whileHover={{ rotate: 15, scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ ...MOTION.springSoft }}
             className={`absolute top-6 left-6 w-12 h-12 opacity-5 pointer-events-none ${theme === 'light' ? 'text-indigo-600' : 'text-indigo-500'}`}
           >
             <Quote className="w-12 h-12" />
@@ -1792,7 +1805,7 @@ function LandingBelowFold() {
             key={activeTestimonial}
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            transition={{ ...MOTION.springSoft }}
             className="relative min-h-[140px] flex flex-col justify-between"
             aria-live="polite"
             aria-atomic="true"
@@ -1813,13 +1826,13 @@ function LandingBelowFold() {
               <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ ...MOTION.springSoft }}
                 className="flex items-center gap-3"
               >
                 {/* Initials badge */}
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   className={`w-9 h-9 rounded-full font-mono font-bold text-xs flex items-center justify-center border ${styleSet.badgeStyle}`}
                 >
                   {testimonials[activeTestimonial].initials}
@@ -1834,13 +1847,13 @@ function LandingBelowFold() {
               <motion.div 
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ ...MOTION.springSoft }}
                 className="flex items-center gap-1.5 select-none"
               >
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   onClick={() => {
                     setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
                   }}
@@ -1857,7 +1870,7 @@ function LandingBelowFold() {
                 <motion.button 
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   onClick={() => {
                     setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
                   }}
@@ -1879,8 +1892,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="flex items-center justify-center gap-2 mt-8 select-none"
           >
             {testimonials.map((_, idx) => (
@@ -1919,8 +1932,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-pink-500 shadow-[0_0_8px_#ec4899]" />
@@ -1932,8 +1945,8 @@ function LandingBelowFold() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className={`relative overflow-hidden rounded-2xl border p-8 sm:p-12 ${theme === 'light' ? 'border-slate-200 bg-gradient-to-br from-white to-slate-50' : 'border-zinc-800 bg-gradient-to-br from-zinc-950 to-zinc-900'}`}
         >
           {/* Background decoration */}
@@ -1989,8 +2002,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-teal-500 shadow-[0_0_8px_#14b8a6]" />
@@ -2042,8 +2055,8 @@ function LandingBelowFold() {
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.1 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, delay: i * 0.1 }}
               whileHover={{ y: -4, scale: 1.01 }}
               className={`relative overflow-hidden rounded-2xl border p-6 ${theme === 'light' ? 'border-slate-200 bg-white/70' : 'border-zinc-800 bg-zinc-950/60'} backdrop-blur-md group`}
             >
@@ -2081,8 +2094,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-yellow-500 shadow-[0_0_8px_#eab308]" />
@@ -2104,8 +2117,8 @@ function LandingBelowFold() {
               key={i}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, delay: i * 0.08 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, delay: i * 0.08 }}
               whileHover={{ y: -4, scale: 1.02 }}
               className={`flex items-center gap-4 p-4 rounded-xl border ${theme === 'light' ? 'border-slate-200 bg-white/50 hover:bg-slate-50' : 'border-zinc-800 bg-zinc-950/40 hover:bg-zinc-900/60'} transition-all group`}
             >
@@ -2127,8 +2140,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono"
         >
           <span className="w-2.5 h-2.5 rounded bg-red-500 shadow-[0_0_8px_#ef4444]" />
@@ -2140,8 +2153,8 @@ function LandingBelowFold() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className={`p-8 rounded-2xl border ${theme === 'light' ? 'border-slate-200 bg-white/50' : 'border-zinc-800 bg-zinc-950/40'}`}
         >
           <h3 className={`text-[10px] font-mono font-bold uppercase tracking-widest mb-6 ${theme === 'light' ? 'text-slate-600' : 'text-zinc-400'}`}>Publications & Features</h3>
@@ -2180,8 +2193,8 @@ function LandingBelowFold() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          viewport={MOTION.revealViewport}
+          transition={{ ...MOTION.springSoft }}
           className="flex items-center gap-3 border-b border-zinc-900/60 pb-3 font-mono select-none"
         >
           <span className="w-2.5 h-2.5 rounded bg-indigo-500 shadow-[0_0_8px_#6366f1]" />
@@ -2194,8 +2207,8 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="lg:col-span-5 space-y-6 font-mono text-[10.5px]"
           >
             <div>
@@ -2208,14 +2221,14 @@ function LandingBelowFold() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.1, delayChildren: 0.2 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, staggerChildren: 0.1, delayChildren: 0.2 }}
               className="space-y-3.5 border-t border-zinc-900/80 pt-6"
             >
               <motion.div className="flex items-center gap-3">
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-indigo-400"
                 >
                   <Mail className="w-4 h-4" />
@@ -2231,7 +2244,7 @@ function LandingBelowFold() {
               <motion.div className="flex items-center gap-3">
                 <motion.div 
                   whileHover={{ scale: 1.1, rotate: -5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   className="p-2 rounded-lg bg-zinc-950 border border-zinc-900 text-sky-400"
                 >
                   <MapPin className="w-4 h-4" />
@@ -2249,8 +2262,8 @@ function LandingBelowFold() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ type: "spring", stiffness: 300, damping: 20, staggerChildren: 0.05, delayChildren: 0.3 }}
+              viewport={MOTION.revealViewport}
+              transition={{ ...MOTION.springSoft, staggerChildren: 0.05, delayChildren: 0.3 }}
               className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-6 border-t border-zinc-900/80 select-none"
             >
               {[
@@ -2265,7 +2278,7 @@ function LandingBelowFold() {
                   key={i}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -2283,21 +2296,21 @@ function LandingBelowFold() {
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            viewport={MOTION.revealViewport}
+            transition={{ ...MOTION.springSoft }}
             className="lg:col-span-7 bg-[#0b0c14]/55 border border-zinc-900/80 p-6 sm:p-8 rounded-3xl relative"
           >
             {formSubmitted ? (
               <motion.div 
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: [0.5, 1.2, 0.9, 1.05, 1] }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.2 }}
+                transition={{ ...MOTION.springSoft, delay: 0.2 }}
                 className="text-center py-10 space-y-4"
               >
                 <motion.div 
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.3 }}
+                  transition={{ ...MOTION.springSoft, delay: 0.3 }}
                   className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                 >
                   <Check className="w-6 h-6 animate-pulse" />
@@ -2305,7 +2318,7 @@ function LandingBelowFold() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.4 }}
+                  transition={{ ...MOTION.springSoft, delay: 0.4 }}
                   className="space-y-1.5 font-mono"
                 >
                   <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">TRANSMISSION EN ROUTE</span>
@@ -2323,7 +2336,7 @@ function LandingBelowFold() {
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   onClick={() => { setFormSubmitted(false); ; }}
                   className="bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-[10px] font-mono font-bold text-zinc-400 hover:text-white px-5 py-2 rounded-lg cursor-pointer transition-colors"
                 >
@@ -2334,8 +2347,8 @@ function LandingBelowFold() {
               <motion.form 
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                viewport={MOTION.revealViewport}
+                transition={{ ...MOTION.springSoft }}
                 onSubmit={handleContactSubmit} 
                 className="space-y-4 font-mono text-[10px]"
               >
@@ -2344,7 +2357,7 @@ function LandingBelowFold() {
                     <label htmlFor="contact-name" className="text-zinc-500 font-semibold block">COGNITIVE NAME</label>
                     <motion.input
                       whileFocus={{ scale: 1.01 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{ ...MOTION.springSoft }}
                       animate={formErrors.name ? { x: [0, -4, 4, -4, 4, 0] } : {}}
                       id="contact-name"
                       name="name"
@@ -2362,7 +2375,7 @@ function LandingBelowFold() {
                     <label htmlFor="contact-email" className="text-zinc-500 font-semibold block">TRANSMISSION EMAIL</label>
                     <motion.input
                       whileFocus={{ scale: 1.01 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{ ...MOTION.springSoft }}
                       animate={formErrors.email ? { x: [0, -4, 4, -4, 4, 0] } : {}}
                       id="contact-email"
                       name="email"
@@ -2381,7 +2394,7 @@ function LandingBelowFold() {
                     <label htmlFor="contact-subject" className="text-zinc-500 font-semibold block">INQUIRY SUBJECT</label>
                     <motion.input
                       whileFocus={{ scale: 1.01 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{ ...MOTION.springSoft }}
                       animate={formErrors.subject ? { x: [0, -4, 4, -4, 4, 0] } : {}}
                       id="contact-subject"
                       name="subject"
@@ -2399,7 +2412,7 @@ function LandingBelowFold() {
                     <label htmlFor="contact-message" className="text-zinc-500 font-semibold block">TRANSMISSION PAYLOAD (MESSAGE)</label>
                     <motion.textarea
                       whileFocus={{ scale: 1.01 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{ ...MOTION.springSoft }}
                       animate={formErrors.message ? { x: [0, -4, 4, -4, 4, 0] } : {}}
                       id="contact-message"
                       name="message"
@@ -2435,7 +2448,7 @@ function LandingBelowFold() {
                   whileHover={{ scale: 1.02, opacity: 0.95 }}
                   whileTap={{ scale: 0.98 }}
                   animate={{ boxShadow: ['0 0 15px rgba(99,102,241,0.2)', '0 0 25px rgba(99,102,241,0.35)', '0 0 15px rgba(99,102,241,0.2)'] }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  transition={{ ...MOTION.springSnappy }}
                   type="submit"
                   disabled={formLoading}
                   className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[10.5px] font-bold uppercase transition-all duration-150 cursor-pointer ${styleSet.btnPrimary}`}
@@ -2467,8 +2480,8 @@ function LandingBelowFold() {
       <motion.footer
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        viewport={MOTION.revealViewport}
+        transition={{ ...MOTION.springSoft }}
         className={`mt-auto relative overflow-hidden border-t ${theme === 'light' ? 'border-slate-200/80 bg-slate-100/60' : 'border-zinc-800/60 bg-[#07080d]/80'} backdrop-blur-xl z-10 select-none`}>
         {/* gradient hairline */}
         <div aria-hidden="true" className="h-px w-full bg-gradient-to-r from-transparent via-indigo-500/70 via-cyan-400/50 to-transparent" />
@@ -2592,7 +2605,7 @@ function LandingBelowFold() {
         <motion.button 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          transition={{ ...MOTION.springSoft }}
           whileHover={{ rotate: 360, scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={scrollToTop}
