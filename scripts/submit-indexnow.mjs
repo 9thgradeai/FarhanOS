@@ -16,7 +16,9 @@ const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 // exist in sitemap.xml — never anchor (#) or /api URLs.
 const URL_LIST = [`https://${HOST}/`];
 
-const res = await fetch('https://api.indexnow.org/indexnow.json', {
+// Official endpoint per https://www.indexnow.org/documentation is POST /indexnow
+// (api.indexnow.org notifies all participating engines: Bing, Yandex, …).
+const res = await fetch('https://api.indexnow.org/indexnow', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json; charset=utf-8' },
   body: JSON.stringify({
