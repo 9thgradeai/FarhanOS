@@ -16,6 +16,7 @@
     "deploy:domain": "gh-pages -d dist",
     "start": "NODE_ENV=production tsx server.ts",
     "lint": "tsc --noEmit",
+    "seo:submit-indexnow": "node scripts/submit-indexnow.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

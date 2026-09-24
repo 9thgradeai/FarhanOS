@@ -93,6 +93,19 @@ local/prod serving, Vercel static-build + Node API (`api/index.ts`).
   proper status codes via `respondError`). Crawler files served before
   fallback. No custom 404 route exists (SPA) — out-of-scope, not faked.
 
+## 10b. IndexNow (instant indexing for Bing and co.)
+
+- Key: `0ae717e33cd8c662e87b4ece3a89aa05`, hosted at
+  `public/0ae717e33cd8c662e87b4ece3a89aa05.txt` → served from `dist/` by both
+  Express static middleware and the Vercel static build (no extra config;
+  the SPA fallback never swallows it because the file exists in `dist/`).
+- Submit script: `scripts/submit-indexnow.mjs` (`npm run seo:submit-indexnow`).
+  Submits only the canonical homepage (the sole sitemap URL — never anchors
+  or `/api` URLs). Posts to `https://api.indexnow.org/indexnow.json`, which
+  notifies Bing, Yandex, and all IndexNow participants at once.
+- Run ONLY after a deploy containing the key file is live (the endpoint
+  verifies key ownership). Manual checklist: `SEARCH-SUBMISSION-CHECKLIST.md`.
+
 ## 11. Validation
 
 - `npm run lint` (tsc --noEmit), `npm run build`, `npm test`
