@@ -28,6 +28,7 @@ import {
   type AssistantAction,
 } from './tools.js';
 import { buildModePrompt, inferIntentMode, isIntentMode, type IntentMode } from './intents.js';
+import { portfolioData } from '../../src/data/portfolioData.js';
 
 export { ApiError };
 export type { MediumStory };
@@ -643,4 +644,48 @@ export async function processContact(body: any): Promise<ContactResult> {
   }
 
   return { analysis, emailStatus };
+}
+
+// ─── playground (public, read-only developer API) ──────────────────────────
+// Hard safety properties: GET-only, public data already visible on-site, no
+// AI spend, no secrets, strict 30/hr rate limit (see security.ts). Anything
+// that costs money or touches private state must never be added here.
+
+export function getPlaygroundIndex() {
+  return {
+    name: 'FarhanOS Playground API',
+    version: '1.0.0',
+    rateLimit: '30 requests/hour per IP',
+    endpoints: [
+      { method: 'GET', path: '/api/playground', description: 'This index document.' },
+      { method: 'GET', path: '/api/playground/papers', description: 'Peer-reviewed publications with key findings.' },
+      { method: 'GET', path: '/api/playground/repos', description: 'Top starred repositories (cached hourly).' },
+    ],
+  };
+}
+
+export function getPlaygroundPapers() {
+  return portfolioData.papers.map((p) => ({
+    id: p.id,
+    title: p.title,
+    authors: p.authors,
+    journal: p.journal,
+    year: p.year,
+    takeaway: p.takeaway ?? null,
+    citation: p.citation,
+    results: p.results,
+  }));
+}
+
+export async function getPlaygroundRepos() {
+  const entry = await getGithubRepos();
+  return entry.data.map((r: any) => ({
+    name: r.name,
+    full_name: r.full_name,
+    description: r.description,
+    html_url: r.html_url,
+    language: r.language,
+    stargazers_count: r.stargazers_count,
+    updated_at: r.updated_at,
+  }));
 }

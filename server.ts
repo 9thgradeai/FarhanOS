@@ -11,6 +11,9 @@ import {
   summarizeBrief,
   getMediumStories,
   getGithubRepos,
+  getPlaygroundIndex,
+  getPlaygroundPapers,
+  getPlaygroundRepos,
   processContact,
 } from './api/core/handlers.js';
 import { isAllowedOrigin, checkApiRateLimit, getClientIp } from './api/core/security.js';
@@ -180,6 +183,26 @@ app.get('/api/health', (_req, res) => {
     uptimeSeconds: Math.round(process.uptime()),
     time: new Date().toISOString(),
   });
+});
+
+// Public read-only playground API (see handlers.ts for safety properties).
+app.get('/api/playground', (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json(getPlaygroundIndex());
+});
+
+app.get('/api/playground/papers', (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.json(getPlaygroundPapers());
+});
+
+app.get('/api/playground/repos', async (_req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+    res.json(await getPlaygroundRepos());
+  } catch (err) {
+    respondError(res, err);
+  }
 });
 
 // Unknown /api/* paths must never fall through to the SPA HTML shell —

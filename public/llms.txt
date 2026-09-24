@@ -17,6 +17,16 @@
 - Research: https://farhankabir.tech/#research
 - Contact / Mission Brief: https://farhankabir.tech/#contact
 
+## Printable resume
+
+- ATS-friendly document route (same live data): https://farhankabir.tech/#/resume
+
+## Public playground API (read-only, 30 req/hour per IP)
+
+- Index: https://farhankabir.tech/api/playground
+- Publications: https://farhankabir.tech/api/playground/papers
+- Repositories: https://farhankabir.tech/api/playground/repos
+
 ## Verified public profiles
 
 - GitHub: https://github.com/farhankabir133

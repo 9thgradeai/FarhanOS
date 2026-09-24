@@ -2589,13 +2589,21 @@ function LandingBelowFold() {
             <p className={`text-[10px] font-mono tracking-widest uppercase ${theme === 'light' ? 'text-slate-500' : 'text-zinc-500'}`}>
               © {new Date().getFullYear()} FARHAN KABIR. ALL RIGHTS SECURED.
             </p>
-            <button
-              onClick={scrollToTop}
-              className={`group inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer ${theme === 'light' ? 'border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white' : 'border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'}`}
-            >
-              BACK TO TOP
-              <ArrowUp className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" />
-            </button>
+            <div className="flex items-center gap-2">
+              <a
+                href="#/resume"
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer ${theme === 'light' ? 'border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white' : 'border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'}`}
+              >
+                PRINTABLE RESUME
+              </a>
+              <button
+                onClick={scrollToTop}
+                className={`group inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer ${theme === 'light' ? 'border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white' : 'border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'}`}
+              >
+                BACK TO TOP
+                <ArrowUp className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
       </motion.footer>

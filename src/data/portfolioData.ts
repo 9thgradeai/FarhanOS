@@ -658,6 +658,57 @@ export const portfolioData: PortfolioData = {
 
   buildLogs: [
     {
+      id: 'bl-v2.4',
+      date: 'Sep 2026',
+      version: 'v2.4.0',
+      title: 'Signature Differentiators & Backend Depth',
+      description: 'Shipped the Tier 1–3 roadmap: an AI twin that operates the desktop, live system telemetry, instant search-engine indexing, and a hardened contact pipeline.',
+      tasksCompleted: [
+        'Wired twin model actions to real OS controls with in-chat receipts',
+        'Added /api/health with live status chips across landing and OS',
+        'Implemented IndexNow instant indexing with verified submission',
+        'Built 3-attempt Resend delivery retry and a live telemetry window'
+      ],
+      metricsChanged: [
+        { metric: 'Twin OS actions', before: 'Unwired', after: 'Live + receipts' },
+        { metric: 'IndexNow submission', before: 'Absent', after: 'HTTP 200' }
+      ]
+    },
+    {
+      id: 'bl-v2.3',
+      date: 'Sep 2026',
+      version: 'v2.3.0',
+      title: 'UI/UX Audit Remediation',
+      description: 'Resolved a full production-grade frontend audit: pointer-unified window dragging, dialog semantics with focus management, and non-blocking notifications.',
+      tasksCompleted: [
+        'Rebuilt window drag on Pointer Events with rAF-throttled commits',
+        'Added role=dialog, focus move/restore, and palette focus trap',
+        'Replaced all blocking alerts with an aria-live toast system',
+        'Validated persisted OS state with schema bounds'
+      ],
+      metricsChanged: [
+        { metric: 'Blocking alerts', before: '6 call sites', after: '0' },
+        { metric: 'Drag renders', before: 'Per mousemove', after: 'Per frame' }
+      ]
+    },
+    {
+      id: 'bl-v2.2',
+      date: 'Sep 2026',
+      version: 'v2.2.0',
+      title: 'SEO & Discovery Foundation',
+      description: 'Established the technical SEO foundation: canonical strategy, crawler files, enriched structured data, and search-console readiness.',
+      tasksCompleted: [
+        'Enforced a single canonical URL with www-to-apex redirects',
+        'Shipped sitemap, robots, llms.txt, and enriched Person schema',
+        'Added verification placeholders and submission documentation',
+        'Confirmed branded-query ranking on Google'
+      ],
+      metricsChanged: [
+        { metric: 'Branded query rank', before: 'Unindexed', after: '#2 Google' },
+        { metric: 'Crawler files', before: 'Partial', after: 'Complete' }
+      ]
+    },
+    {
       id: 'bl-v1.4',
       date: 'May 2026',
       version: 'v1.4.2',

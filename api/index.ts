@@ -8,6 +8,9 @@ import {
   summarizeBrief,
   getMediumStories,
   getGithubRepos,
+  getPlaygroundIndex,
+  getPlaygroundPapers,
+  getPlaygroundRepos,
   processContact,
 } from './core/handlers.js';
 import { isAllowedOrigin, checkApiRateLimit, getClientIp } from './core/security.js';
@@ -134,6 +137,23 @@ export default async function handler(req: any, res: any) {
         message: 'Transmission successfully established and analyzed.',
         ...result,
       });
+      return;
+    }
+
+    // ─── GET /api/playground* (public read-only developer API) ──────────
+    if (path === '/api/playground' && req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.json(getPlaygroundIndex());
+      return;
+    }
+    if (path === '/api/playground/papers' && req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.json(getPlaygroundPapers());
+      return;
+    }
+    if (path === '/api/playground/repos' && req.method === 'GET') {
+      res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+      res.json(await getPlaygroundRepos());
       return;
     }
 

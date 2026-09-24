@@ -70,11 +70,25 @@ import {
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { Toaster, notify } from './components/Toast';
 import { ApiStatusChip } from './components/ApiStatusChip';
+import ResumeDocument, { parseResumeRoute } from './components/ResumeDocument';
 
 
 export default function App() {
   // Navigation View Modes
   const [viewMode, setViewMode] = useState<'landing' | 'os'>('landing');
+  // Document routes (hash-based): #/resume renders the printable resume.
+  const [route, setRoute] = useState<string | null>(() => (parseResumeRoute() ? 'resume' : null));
+  useEffect(() => {
+    const onHash = () => setRoute(parseResumeRoute() ? 'resume' : null);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  const exitResume = useCallback(() => {
+    try {
+      history.pushState(null, '', window.location.pathname + window.location.search);
+    } catch { /* ignore */ }
+    setRoute(null);
+  }, []);
   const [isWarping, setIsWarping] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -1145,6 +1159,10 @@ export default function App() {
   }, [theme]);
 
   const styleSet = useMemo(() => getThemeStyles(), [getThemeStyles]);
+
+  if (route === 'resume') {
+    return <ResumeDocument onBack={exitResume} />;
+  }
 
   return (
     <div className={`w-full ${viewMode === 'os' ? 'h-full overflow-hidden select-none' : 'min-h-screen'} ${styleSet.bg} transition-colors duration-500 flex flex-col relative`}>
