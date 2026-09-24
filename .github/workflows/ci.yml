@@ -1,0 +1,53 @@
+# CI: validate every push/PR to Production before Vercel deploys it.
+#
+# Deployment itself needs no workflow: the Vercel project connected to this
+# repo auto-deploys each push to the production branch (Vercel Dashboard >
+# Project > Settings > Git > Production Branch must be "Production").
+# This workflow is the quality gate in front of that auto-deploy.
+
+name: CI
+
+on:
+  push:
+    branches: [Production]
+  pull_request:
+    branches: [Production]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: SEO smoke checks
+        run: |
+          set -e
+          test -f dist/index.html || (echo "missing dist/index.html" && exit 1)
+          for f in robots.txt sitemap.xml llms.txt; do
+            test -f "dist/$f" || (echo "missing dist/$f" && exit 1)
+          done
+          grep -q 'rel="canonical" href="https://farhankabir.tech/"' dist/index.html
+          grep -q 'application/ld+json' dist/index.html
+          grep -q 'Sitemap: https://farhankabir.tech/sitemap.xml' dist/robots.txt
+          python3 -c "import xml.dom.minidom; xml.dom.minidom.parse('dist/sitemap.xml'); print('sitemap.xml: valid')"
+          python3 -c "import json; json.load(open('vercel.json')); print('vercel.json: valid')"
+          echo "SEO smoke checks passed"
