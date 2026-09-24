@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useMemo, useCallback } from 'react';
 import {
-  Sparkle, Download, PhoneCall, Menu, X, Github, Linkedin, Instagram, User
+  Sparkle, Download, PhoneCall, Menu, X, Github, Linkedin, Instagram, User, Rocket
 } from 'lucide-react';
 import { portfolioData } from '../data/portfolioData';
 import { Article, Theme } from '../types';
@@ -49,6 +49,18 @@ export default function LandingPage({
 }: LandingPageProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Shared primary navigation (header pill + mobile drawer stay in sync).
+  const navLinks = [
+    { href: "#about", label: "ABOUT", target: "about" },
+    { href: "#skills", label: "STATIONS", target: "skills" },
+    { href: "#timeline", label: "CHRONOLOGY", target: "timeline" },
+    { href: "#prof-timeline", label: "PROF. TIMELINE", target: "prof-timeline" },
+    { href: "#projects", label: "INNOVATIONS", target: "projects" },
+    { href: "#certifications", label: "CERTIFICATES", target: "certifications" },
+    { href: "#contact", label: "TRANSMIT", target: "contact" }
+  ];
   const [activeTab, setActiveTab] = useState<'All' | 'AI/ML' | 'Frontend' | 'Backend' | 'Database' | 'DevOps'>('All');
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -98,6 +110,9 @@ export default function LandingPage({
         window.requestAnimationFrame(() => {
           const scrollTop = window.scrollY || document.documentElement.scrollTop;
           setShowBackToTop(scrollTop > 500);
+
+          const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+          setScrollProgress(maxScroll > 0 ? Math.min(Math.max(scrollTop / maxScroll, 0), 1) : 0);
 
           const timelineElement = timelineRef.current;
           if (timelineElement) {
@@ -299,7 +314,7 @@ export default function LandingPage({
   return (
     <div 
       ref={containerRef}
-      className="relative min-h-screen flex flex-col w-full select-text bg-transparent md:pl-20 pb-16 sm:pb-20"
+      className="relative min-h-screen flex flex-col w-full select-text bg-transparent pb-16 sm:pb-20"
     >
       {/* Skip link for keyboard users */}
       <a
@@ -318,20 +333,31 @@ export default function LandingPage({
       {/* Background glow meshes */}
       <div className={`pointer-events-none fixed inset-0 z-0 bg-gradient-to-br ${styleSet.gradientBg} opacity-80`} />
 
-      {/* HEADER BAR */}
+      {/* HEADER BAR — full-bleed command bar */}
       <header
         className="animate-slide-down sticky top-0 z-[100]"
       >
-        <div className={`h-16 px-4 md:px-12 flex items-center justify-between border-b ${theme === 'light' ? 'border-slate-200/80 bg-white/70' : 'border-zinc-900/60 bg-black/45'} backdrop-blur-md transition-all`}>
-          <div className="flex items-center gap-3">
-            <span 
-              className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-badge-pulse"
-            />
-            <div className="flex flex-col">
+        {/* gradient hairline */}
+        <div aria-hidden="true" className="h-px w-full bg-gradient-to-r from-transparent via-indigo-500/80 via-cyan-400/60 to-transparent" />
+        <div className={`relative h-16 px-4 md:px-8 flex items-center justify-between gap-4 border-b backdrop-blur-xl transition-all ${theme === 'light' ? 'border-slate-200/80 bg-white/75' : 'border-zinc-800/60 bg-[#07080d]/70'}`}>
+          {/* identity cluster — orbital monogram */}
+          <a
+            href="#hero-content"
+            onClick={(e) => { handleAnchorClick(e, 'hero-content'); }}
+            className="flex items-center gap-3 shrink-0 rounded-lg"
+            aria-label="Farhan Kabir — back to top"
+          >
+            <span className="relative flex items-center justify-center w-9 h-9">
+              <span aria-hidden="true" className="absolute inset-0 rounded-full border border-dashed border-indigo-500/60 animate-spin-slow" />
+              <span aria-hidden="true" className="absolute inset-[5px] rounded-full bg-gradient-to-br from-indigo-600 via-indigo-500 to-cyan-500" />
+              <span className="relative text-[10px] font-black text-white tracking-tighter">FK</span>
+              <span aria-hidden="true" className="absolute -right-0.5 -bottom-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#07080d]" />
+            </span>
+            <span className="flex flex-col leading-tight">
               <span className={`text-xs font-black tracking-widest uppercase font-sans ${theme === 'light' ? 'text-slate-800' : 'text-slate-100'}`}>FARHAN KABIR</span>
               <span className="hidden lg:block text-[10px] font-mono text-zinc-550 uppercase tracking-widest">COGNITIVE SYSTEMS ARCHITECT</span>
-            </div>
-          </div>
+            </span>
+          </a>
 
           {/* Hamburger button - mobile only */}
           <button
@@ -339,41 +365,50 @@ export default function LandingPage({
             className="site-mobile-hamburger md:hidden flex items-center justify-center w-11 h-11 rounded text-zinc-300 hover:text-white cursor-pointer"
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
+            aria-controls="landing-mobile-menu"
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
 
-          <nav className="site-desktop-nav hidden md:flex items-center gap-x-4 text-[10.5px] font-mono tracking-wider font-semibold text-zinc-400 whitespace-nowrap">
-            {[
-              { href: "#about", label: "ABOUT", target: "about" },
-              { href: "#skills", label: "STATIONS", target: "skills" },
-              { href: "#timeline", label: "CHRONOLOGY", target: "timeline" },
-              { href: "#prof-timeline", label: "PROF. TIMELINE", target: "prof-timeline" },
-              { href: "#projects", label: "INNOVATIONS", target: "projects" },
-              { href: "#certifications", label: "CERTIFICATES", target: "certifications" },
-              { href: "#contact", label: "TRANSMIT", target: "contact" }
-            ].map((link, i) => (
+          {/* pill navigation */}
+          <nav aria-label="Primary" className={`site-desktop-nav hidden lg:flex items-center gap-0.5 px-2 py-1.5 rounded-full border whitespace-nowrap ${theme === 'light' ? 'border-slate-200 bg-slate-100/70' : 'border-zinc-800/80 bg-black/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]'}`}>
+            {navLinks.map((link, i) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={(e) => { handleAnchorClick(e, link.target); }}
-                className="relative hover:text-white transition-colors group hover:translate-y-[-2px]"
+                className={`group relative px-3 py-1.5 rounded-full text-[10.5px] font-mono tracking-wider font-semibold transition-all hover:-translate-y-px ${theme === 'light' ? 'text-slate-500 hover:text-slate-900 hover:bg-white' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
               >
+                <span aria-hidden="true" className="mr-1.5 text-[9px] text-indigo-400/70 group-hover:text-cyan-300">0{i + 1}</span>
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-indigo-400 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
+                <span aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 -bottom-px w-1 h-1 rounded-full bg-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_6px_#67e8f9]" />
               </a>
             ))}
           </nav>
 
-          <div className="site-desktop-launch hidden md:flex items-center gap-3">
-            <button 
+          {/* status + launch cluster */}
+          <div className="site-desktop-launch hidden md:flex items-center gap-3 shrink-0">
+            <span className={`hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-mono tracking-widest ${theme === 'light' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300'}`}>
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              SYS.ONLINE
+            </span>
+            <button
               onClick={onLaunchOS}
               disabled={isWarping}
-              className={`cursor-pointer text-[10px] font-mono font-extrabold uppercase px-4 py-2 rounded-lg transition-all active:scale-95 duration-150 hover:scale-105 hover:opacity-95 ${styleSet.btnPrimary}`}
+              className={`group relative cursor-pointer text-[10px] font-mono font-extrabold uppercase tracking-widest pl-4 pr-5 py-2.5 rounded-full transition-all active:scale-95 duration-150 hover:scale-[1.03] flex items-center gap-2 overflow-hidden ${theme === 'light' ? 'bg-slate-900 text-white shadow-md' : 'bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.35)] border border-white/15'}`}
             >
-              {isWarping ? "Warp Core Charging..." : "Launch OS"}
+              <span aria-hidden="true" className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+              <Rocket className="w-3.5 h-3.5" />
+              {isWarping ? "Warp Charging..." : "Launch OS"}
             </button>
           </div>
+        </div>
+        {/* scroll progress */}
+        <div aria-hidden="true" className="h-[2px] w-full bg-transparent">
+          <div
+            className="h-full w-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-fuchsia-500 origin-left"
+            style={{ transform: `scaleX(${scrollProgress})` }}
+          />
         </div>
       </header>
 
@@ -381,7 +416,7 @@ export default function LandingPage({
       {mobileMenuOpen && (
         <div className="site-mobile-overlay fixed inset-0 z-[9999] md:hidden">
           <div aria-hidden="true" className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div ref={mobileMenuRef} role="dialog" aria-modal="true" aria-label="Navigation menu" className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
+          <div ref={mobileMenuRef} id="landing-mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu" className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800/40">
               <span className="text-xs font-mono font-bold text-white tracking-tight">NAVIGATION</span>
               <button
@@ -393,21 +428,14 @@ export default function LandingPage({
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
-              {[
-                { href: "#about", label: "ABOUT", target: "about" },
-                { href: "#skills", label: "STATIONS", target: "skills" },
-                { href: "#timeline", label: "CHRONOLOGY", target: "timeline" },
-                { href: "#prof-timeline", label: "PROF. TIMELINE", target: "prof-timeline" },
-                { href: "#projects", label: "INNOVATIONS", target: "projects" },
-                { href: "#certifications", label: "CERTIFICATES", target: "certifications" },
-                { href: "#contact", label: "TRANSMIT", target: "contact" }
-              ].map((link) => (
+              {navLinks.map((link, i) => (
                 <a
                   key={link.href}
                   href={link.href}
                   onClick={(e) => { handleAnchorClick(e, link.target); setMobileMenuOpen(false); }}
-                  className="flex items-center px-3 py-3 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-900/60 transition-all text-sm font-mono tracking-wider"
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-900/60 transition-all text-sm font-mono tracking-wider"
                 >
+                  <span aria-hidden="true" className="text-[10px] text-indigo-400/70">0{i + 1}</span>
                   {link.label}
                 </a>
               ))}
