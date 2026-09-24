@@ -105,7 +105,7 @@ export default async function handler(req: any, res: any) {
     // ─── GET /api/medium-stories ─────────────────────────────────────────
     if (path.startsWith('/api/medium-stories') && req.method === 'GET') {
       const entry = await getMediumStories();
-      applyValidatorHeaders(res, entry, 'public, max-age=900');
+      applyValidatorHeaders(res, entry, 'public, max-age=900, stale-while-revalidate=86400');
       if (etagMatchesRequest(req, entry.etag)) {
         res.status(304).end();
         return;
@@ -117,7 +117,7 @@ export default async function handler(req: any, res: any) {
     // ─── GET /api/github-repos ───────────────────────────────────────────
     if (path.startsWith('/api/github-repos') && req.method === 'GET') {
       const entry = await getGithubRepos();
-      applyValidatorHeaders(res, entry, 'public, max-age=3600');
+      applyValidatorHeaders(res, entry, 'public, max-age=3600, stale-while-revalidate=86400');
       if (etagMatchesRequest(req, entry.etag)) {
         res.status(304).end();
         return;

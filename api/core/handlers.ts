@@ -583,42 +583,62 @@ export async function processContact(body: any): Promise<ContactResult> {
     // Model output deliberately kept out of the subject line beyond a
     // validated urgency icon, to prevent forged notification subjects.
     const emailSubject = `[FarhanOS] ${urgencyIcon} New contact message from ${email}`;
-    try {
-      const emailRes = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: CONTACT_FROM,
-          to: [CONTACT_RECIPIENT],
-          subject: emailSubject,
-          html: buildContactEmailHtml({
-            name,
-            email,
-            subject,
-            message,
-            metadata: body?.metadata,
-            urgency: safeUrgency,
-            inquiryType,
-            summaryText: clamp(analysis.summaryText, 300),
-            suggestedAutoReply: clamp(analysis.suggestedAutoReply, 1000),
-          }),
-        }),
-        signal: AbortSignal.timeout(15_000),
-      });
+    const emailPayload = {
+      from: CONTACT_FROM,
+      to: [CONTACT_RECIPIENT],
+      subject: emailSubject,
+      html: buildContactEmailHtml({
+        name,
+        email,
+        subject,
+        message,
+        metadata: body?.metadata,
+        urgency: safeUrgency,
+        inquiryType,
+        summaryText: clamp(analysis.summaryText, 300),
+        suggestedAutoReply: clamp(analysis.suggestedAutoReply, 1000),
+      }),
+    };
+    // Delivery retry: 3 attempts with backoff. Retries cover network throws,
+    // timeouts, rate limits (429) and upstream 5xx; 4xx fails fast since
+    // retrying a rejected payload is pointless.
+    const DELIVERY_ATTEMPTS = 3;
+    const DELIVERY_BACKOFFS_MS = [500, 1500];
+    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    let attempt = 0;
+    for (;;) {
+      attempt += 1;
+      try {
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailPayload),
+          signal: AbortSignal.timeout(15_000),
+        });
 
-      const emailBody = await emailRes.json().catch(() => ({}) as any);
-      if (emailRes.ok) {
-        emailStatus = { sent: true, id: (emailBody as any).id };
-      } else {
+        const emailBody = await emailRes.json().catch(() => ({}) as any);
+        if (emailRes.ok) {
+          if (attempt > 1) console.log(`[Contact] Resend delivered on attempt ${attempt}.`);
+          emailStatus = { sent: true, id: (emailBody as any).id };
+          break;
+        }
+        const retryable = emailRes.status === 429 || emailRes.status >= 500;
         console.error('[Contact] Resend error:', emailRes.status, (emailBody as any)?.message);
-        emailStatus = { sent: false, error: `Email delivery failed (${emailRes.status}).` };
+        if (!retryable || attempt >= DELIVERY_ATTEMPTS) {
+          emailStatus = { sent: false, error: `Email delivery failed (${emailRes.status}).` };
+          break;
+        }
+      } catch (emailErr) {
+        console.error(`[Contact] Resend request threw (attempt ${attempt}):`, emailErr);
+        if (attempt >= DELIVERY_ATTEMPTS) {
+          emailStatus = { sent: false, error: 'Email delivery timed out or failed.' };
+          break;
+        }
       }
-    } catch (emailErr) {
-      console.error('[Contact] Resend request threw:', emailErr);
-      emailStatus = { sent: false, error: 'Email delivery timed out or failed.' };
+      await delay(DELIVERY_BACKOFFS_MS[attempt - 1] ?? 2000);
     }
   }
 

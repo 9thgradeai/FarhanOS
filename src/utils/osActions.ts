@@ -16,6 +16,7 @@ export const OS_WINDOW_IDS = [
   'profTimeline',
   'about',
   'settings',
+  'telemetry',
 ] as const;
 
 export type OsWindowId = (typeof OS_WINDOW_IDS)[number];

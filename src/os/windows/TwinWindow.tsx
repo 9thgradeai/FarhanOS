@@ -1,5 +1,6 @@
-import { Send, Cpu, Volume2, VolumeX } from 'lucide-react';
+import { Send, Cpu, Volume2, VolumeX, FileText, ExternalLink } from 'lucide-react';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
+import { sourceWindowFor } from '../../utils/osActions';
 import { StyleSet } from '../../types';
 
 interface TwinMessage {
@@ -17,6 +18,8 @@ interface TwinWindowProps {
   handleSendTwinMessage: (override?: string) => void;
   /** Receipt banner for the last OS action the twin performed. */
   actionNote?: string | null;
+  /** Open the OS window a cited source maps to (RAG transparency). */
+  onOpenSource?: (title: string) => void;
   playingMessageIndex: number | null;
   speakText: (text: string, index: number) => void;
   stopSpeaking: () => void;
@@ -30,6 +33,7 @@ export default function TwinWindow({
   setTwinInput,
   handleSendTwinMessage,
   actionNote,
+  onOpenSource,
   playingMessageIndex,
   speakText,
   stopSpeaking,
@@ -101,19 +105,34 @@ export default function TwinWindow({
               </button>
             )}
 
-            {/* RAG source citations */}
+            {/* Verified knowledge sources behind this answer */}
             {m.role === 'assistant' && m.sources && m.sources.length > 0 && (
-              <div className="mt-1 flex flex-wrap gap-1">
-                <span className="text-[10px] uppercase tracking-wider text-zinc-600 font-mono mr-1 self-center">Sources:</span>
-                {m.sources.map((s, i) => (
-                  <span
-                    key={`${s.title}-${i}`}
-                    title={s.title}
-                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 max-w-[160px] truncate"
-                  >
-                    {s.title}
-                  </span>
-                ))}
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                <span className="text-[10px] uppercase tracking-wider text-zinc-600 font-mono mr-1 self-center">Verified sources:</span>
+                {m.sources.slice(0, 4).map((s, i) => {
+                  const target = sourceWindowFor(s.title);
+                  const label = s.title.length > 28 ? `${s.title.slice(0, 28)}…` : s.title;
+                  return target && onOpenSource ? (
+                    <button
+                      key={`${s.title}-${i}`}
+                      onClick={() => onOpenSource(s.title)}
+                      title={`${s.title} — open ${target} window`}
+                      className="flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-indigo-300 hover:border-indigo-500/40 cursor-pointer transition-colors max-w-[160px]"
+                    >
+                      <FileText className="w-2.5 h-2.5 shrink-0" aria-hidden="true" />
+                      <span className="truncate">{label}</span>
+                      <ExternalLink className="w-2.5 h-2.5 shrink-0 opacity-60" aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <span
+                      key={`${s.title}-${i}`}
+                      title={s.title}
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 max-w-[160px] truncate"
+                    >
+                      {s.title}
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

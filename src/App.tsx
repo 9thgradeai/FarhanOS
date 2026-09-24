@@ -5,7 +5,7 @@ import {
   Calendar, Award, Search,
   Maximize2, Minimize2, X, Menu, Sparkles,
   Rocket, Compass, PhoneCall, Palette,
-  Clock, FileSpreadsheet, Settings, User, Volume2, VolumeX
+  Clock, FileSpreadsheet, Settings, User, Volume2, VolumeX, Activity
 } from 'lucide-react';
 import { FarhanAIIcon } from './components/FarhanAIIcon';
 import ClockText from './components/Clock';
@@ -32,6 +32,7 @@ const BriefWindow = lazy(() => import('./os/windows/BriefWindow'));
 const ProfTimelineWindow = lazy(() => import('./os/windows/ProfTimelineWindow'));
 const AboutWindow = lazy(() => import('./os/windows/AboutWindow'));
 const SettingsWindow = lazy(() => import('./os/windows/SettingsWindow'));
+const TelemetryWindow = lazy(() => import('./os/windows/TelemetryWindow'));
 
 // Warm the module cache when a visitor hovers an icon, so opening the window
 // feels instant (feature 7: prefetch-on-hover).
@@ -51,6 +52,7 @@ const windowImportMap: Record<string, () => Promise<unknown>> = {
   profTimeline: () => import('./os/windows/ProfTimelineWindow'),
   about: () => import('./os/windows/AboutWindow'),
   settings: () => import('./os/windows/SettingsWindow'),
+  telemetry: () => import('./os/windows/TelemetryWindow'),
 };
 const prefetchWindow = (id: string) => {
   windowImportMap[id]?.().catch(() => {});
@@ -62,6 +64,7 @@ import {
   isOpenableExternalUrl,
   isOsTheme,
   isOsWindowId,
+  sourceWindowFor,
   type AssistantAction,
 } from './utils/osActions';
 import { useFocusTrap } from './hooks/useFocusTrap';
@@ -150,6 +153,7 @@ export default function App() {
   const [windowReady, setWindowReady] = useState<Record<string, boolean>>({});
 
   const osTimelineProgressLineRef = useRef<HTMLDivElement | null>(null);
+  const sessionStartRef = useRef(Date.now());
 
   // Dynamic window width for responsiveness (debounced). Window positions
   // are re-clamped here so rotation/resize never strands title bars off-screen.
@@ -701,6 +705,12 @@ export default function App() {
   // Kept in sync every render so gesture handlers above can minimize.
   minimizeWindowRef.current = minimizeWindow;
 
+  // RAG transparency: open the OS window a cited source maps to, if any.
+  const handleOpenSource = useCallback((title: string) => {
+    const win = sourceWindowFor(title);
+    if (win) openWindow(win);
+  }, [openWindow]);
+
   const toggleMaximize = useCallback((windowId: string) => {
     triggerSound(800, 0.04);
     setWindowPositions(prev => ({
@@ -1060,6 +1070,7 @@ export default function App() {
     { id: 'whiteboard', label: 'Ideation Pad', icon: Palette, color: 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
     { id: 'about', label: 'About Farhan', icon: User, color: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20' },
     { id: 'settings', label: 'Preferences', icon: Settings, color: 'text-slate-300 bg-zinc-500/10 border-zinc-500/20' },
+    { id: 'telemetry', label: 'Telemetry', icon: Activity, color: 'text-lime-400 bg-lime-500/10 border-lime-500/20' },
   ], []);
 
   // Theme styling definitions mapping
@@ -1540,6 +1551,7 @@ export default function App() {
                       setTwinInput={setTwinInput}
                       handleSendTwinMessage={handleSendTwinMessage}
                       actionNote={twinActionNote}
+                      onOpenSource={handleOpenSource}
                       playingMessageIndex={playingMessageIndex}
                       speakText={speakText}
                       stopSpeaking={stopSpeaking}
@@ -1696,6 +1708,18 @@ export default function App() {
                 {winId === 'about' && (
                   <Suspense fallback={<SkeletonWindow lines={4} />}>
                     <AboutWindow styleSet={styleSet} />
+                  </Suspense>
+                )}
+
+                {/* N2. SYSTEM TELEMETRY / MISSION CONTROL */}
+                {winId === 'telemetry' && (
+                  <Suspense fallback={<SkeletonWindow lines={4} />}>
+                    <TelemetryWindow
+                      styleSet={styleSet}
+                      theme={theme}
+                      openCount={openWindows.length}
+                      sessionStart={sessionStartRef.current}
+                    />
                   </Suspense>
                 )}
 

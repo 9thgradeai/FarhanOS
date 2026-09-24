@@ -130,7 +130,8 @@ function applyValidatorHeaders(
 app.get('/api/medium-stories', async (req, res) => {
   try {
     const entry = await getMediumStories();
-    applyValidatorHeaders(res, entry, 'public, max-age=900');
+    // Edge-cached 15 min, stale served up to 24h while revalidating.
+    applyValidatorHeaders(res, entry, 'public, max-age=900, stale-while-revalidate=86400');
     if (etagMatches(req.headers['if-none-match'], entry.etag)) {
       res.status(304).end();
       return;
@@ -144,7 +145,8 @@ app.get('/api/medium-stories', async (req, res) => {
 app.get('/api/github-repos', async (req, res) => {
   try {
     const entry = await getGithubRepos();
-    applyValidatorHeaders(res, entry, 'public, max-age=3600');
+    // Edge-cached 1h, stale served up to 24h while revalidating.
+    applyValidatorHeaders(res, entry, 'public, max-age=3600, stale-while-revalidate=86400');
     if (etagMatches(req.headers['if-none-match'], entry.etag)) {
       res.status(304).end();
       return;
