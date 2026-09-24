@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Single-page application: one canonical indexable URL. Anchor sections
+     (#about, #skills, #projects, #research, #contact) are not separate URLs
+     and are intentionally excluded to avoid duplicate/noindex entries. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://farhankabir.tech/</loc>
-    <lastmod>2026-08-07</lastmod>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>

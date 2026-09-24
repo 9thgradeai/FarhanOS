@@ -414,8 +414,14 @@ export default function LandingPage({
         </div>
       )}
 
+      {/* Main content landmark: hero + anchored sections (#about, #skills, …) */}
+      <main id="main-content">
       {/* SECTION 1: HERO / INTRODUCTION */}
-      <section id="hero-content" className="relative min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6 md:px-12 py-16 text-center select-none z-10">
+      <section id="hero-content" aria-labelledby="hero-heading" className="relative min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6 md:px-12 py-16 text-center select-none z-10">
+        {/* Single primary H1 (visually hidden; visual headline is the typewriter effect) */}
+        <h1 id="hero-heading" className="sr-only">
+          Farhan Kabir — AI Engineer and Full-Stack Developer specializing in NLP and LLM applications
+        </h1>
         
         {/* Glowing border portrait frame */}
         <div 
@@ -563,6 +569,7 @@ export default function LandingPage({
           rootMargin="300px"
         />
       </LandingPageContext.Provider>
+      </main>
     </div>
   );
 }

@@ -1,0 +1,27 @@
+# FarhanOS — farhankabir.tech
+
+> Farhan Kabir is an AI-focused Full Stack Engineer (4+ years) specializing in
+> NLP, LLM-driven applications, clinical NLP research, and production AI SaaS.
+> This is a single-page interactive portfolio ("FarhanOS") with anchor sections.
+
+- Canonical URL: https://farhankabir.tech/
+- Sitemap: https://farhankabir.tech/sitemap.xml
+- Language: en
+
+## Sections (single-page anchors, not separate URLs)
+
+- About: https://farhankabir.tech/#about
+- Skills: https://farhankabir.tech/#skills
+- Timeline: https://farhankabir.tech/#timeline
+- Projects: https://farhankabir.tech/#projects
+- Research: https://farhankabir.tech/#research
+- Contact / Mission Brief: https://farhankabir.tech/#contact
+
+## Verified public profiles
+
+- GitHub: https://github.com/farhankabir133
+- LinkedIn: https://www.linkedin.com/in/farhankabir133/
+- Medium: https://medium.com/@farhankabir133
+- X: https://x.com/fkh_236
+- Instagram: https://www.instagram.com/_farhan_kabir/
+- Gravatar: https://gravatar.com/fk133

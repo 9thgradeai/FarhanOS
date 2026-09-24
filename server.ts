@@ -192,6 +192,18 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    // Baseline security headers for crawlers and browsers (mirrors vercel.json).
+    // Never weakens auth/security; purely additive hardening headers.
+    app.use((_req, res, next) => {
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader(
+        'Permissions-Policy',
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
+      );
+      next();
+    });
     app.use(express.static(distPath, {
       maxAge: '1y',
       immutable: true,
@@ -201,9 +213,23 @@ async function startServer() {
           res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
           res.setHeader('Access-Control-Allow-Origin', '*');
         }
+        if (/robots\.txt|sitemap\.xml|llms\.txt$/.test(filePath)) {
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+        }
       },
     }));
-    app.get('*', (_req, res) => {
+    // Serve crawler files explicitly so SPA fallback never swallows them.
+    for (const f of ['robots.txt', 'sitemap.xml', 'llms.txt']) {
+      app.get(`/${f}`, (_req, res) => {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.sendFile(path.join(distPath, f));
+      });
+    }
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/')) {
+        next();
+        return;
+      }
       res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(path.join(distPath, 'index.html'));
     });

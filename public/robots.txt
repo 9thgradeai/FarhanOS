@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# API endpoints are application data, not indexable content.
+Disallow: /api/
+
 Sitemap: https://farhankabir.tech/sitemap.xml
