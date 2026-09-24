@@ -168,6 +168,18 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// Liveness probe for the status chips in the UI. Cheap, unauthenticated,
+// never indexed (robots.txt disallows /api/).
+app.get('/api/health', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({
+    status: 'ok',
+    runtime: 'node',
+    uptimeSeconds: Math.round(process.uptime()),
+    time: new Date().toISOString(),
+  });
+});
+
 // Unknown /api/* paths must never fall through to the SPA HTML shell —
 // API consumers get a JSON 404 for any method. Registered before static
 // serving and the SPA fallback so it holds in both dev and production.

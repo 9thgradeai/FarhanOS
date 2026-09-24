@@ -10,6 +10,7 @@ import { portfolioData } from '../data/portfolioData';
 import { useLandingPage } from './LandingPageContext';
 import { track } from '../utils/analytics';
 import { getApiBaseUrl } from '../utils/apiConfig';
+import { ApiStatusChip } from './ApiStatusChip';
 
 const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -2506,6 +2507,7 @@ function LandingBelowFold() {
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-mono tracking-widest ${theme === 'light' ? 'border-slate-200 bg-white text-slate-600' : 'border-zinc-800 bg-black/40 text-zinc-400'}`}>
                 FARHANOS v2.0
               </span>
+              <ApiStatusChip theme={theme} />
             </div>
           </div>
 

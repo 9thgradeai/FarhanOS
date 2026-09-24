@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useMemo, useCallback } from 'react';
 import {
-  Sparkle, Download, PhoneCall, Menu, X, Github, Linkedin, Instagram, User, Rocket
+  Sparkle, Download, PhoneCall, Menu, X, Github, Linkedin, Instagram, User, Rocket, Search
 } from 'lucide-react';
 import { portfolioData } from '../data/portfolioData';
 import { Article, Theme } from '../types';
@@ -35,6 +35,7 @@ interface LandingPageProps {
   theme: Theme;
   onLaunchOS: () => void;
   onOpenWindowDirectly: (winId: string) => void;
+  onOpenPalette: () => void;
   articles?: Article[];
   onOpenArticleDirectly?: (article: Article) => void;
 }
@@ -44,6 +45,7 @@ export default function LandingPage({
   theme,
   onLaunchOS,
   onOpenWindowDirectly,
+  onOpenPalette,
   articles = [],
   onOpenArticleDirectly
 }: LandingPageProps) {
@@ -545,12 +547,25 @@ export default function LandingPage({
             Activate Cosmic OS
           </button>
           
-          <button 
+          <button
             onClick={() => onOpenWindowDirectly('resume')}
             className={`w-full sm:w-auto px-6 py-3.5 rounded-xl text-[10.5px] font-mono font-bold tracking-wider uppercase cursor-pointer active:scale-95 duration-100 flex items-center justify-center gap-2 border hover:scale-103 transition-transform ${styleSet.btnSecondary}`}
           >
             <Download className="w-4 h-4" />
             <span>Get Resume (CV)</span>
+          </button>
+        </div>
+
+        {/* Search-first entry: the whole site is indexed in the command bar */}
+        <div className="animate-fade-in-delay-03 mt-4 flex items-center justify-center">
+          <button
+            onClick={onOpenPalette}
+            className={`group flex items-center gap-2.5 pl-4 pr-3 py-2 rounded-full border text-[10px] font-mono tracking-wider cursor-pointer transition-all hover:scale-[1.02] active:scale-95 ${theme === 'light' ? 'border-slate-200 bg-white/70 text-slate-500 hover:text-slate-900' : 'border-zinc-800 bg-black/50 text-zinc-400 hover:text-white hover:border-zinc-700'}`}
+            aria-label="Search the site (keyboard shortcut K)"
+          >
+            <Search className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Search projects, papers, skills…</span>
+            <kbd className={`px-1.5 py-0.5 rounded border text-[10px] font-bold ${theme === 'light' ? 'border-slate-200 bg-slate-100 text-slate-600' : 'border-zinc-800 bg-zinc-900 text-zinc-300'}`}>K</kbd>
           </button>
         </div>
 

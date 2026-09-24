@@ -66,6 +66,7 @@ import {
 } from './utils/osActions';
 import { useFocusTrap } from './hooks/useFocusTrap';
 import { Toaster, notify } from './components/Toast';
+import { ApiStatusChip } from './components/ApiStatusChip';
 
 
 export default function App() {
@@ -412,13 +413,43 @@ export default function App() {
     }, 1800);
   }, [isWarping]);
 
+  // Command palette entry points: Cmd/Ctrl+K anywhere, or bare "K" outside
+  // text fields (the hero advertises it). The palette lives in OS mode, so
+  // invoking it from the landing page enters the OS first.
+  const handleOpenPalette = useCallback(() => {
+    setViewMode('os');
+    setCommandPaletteOpen(true);
+    triggerSound(800, 0.03);
+  }, [triggerSound]);
+
+  // Shareable deep links: #/w/<window-id> enters the OS with that window open.
+  useEffect(() => {
+    const m = window.location.hash.match(/^#\/w\/([\w-]+)/);
+    if (m && isOsWindowId(m[1])) {
+      setViewMode('os');
+      openWindow(m[1]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Global Key Down for Cmd + K Command Palette
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setCommandPaletteOpen(prev => !prev);
-        triggerSound(900, 0.04);
+        if (viewMode === 'landing') {
+          handleOpenPalette();
+        } else {
+          setCommandPaletteOpen(prev => !prev);
+          triggerSound(900, 0.04);
+        }
+      } else if (
+        e.key === 'k' && !e.metaKey && !e.ctrlKey && !e.altKey &&
+        viewMode === 'landing' &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
+        handleOpenPalette();
       }
       if (e.key === 'Escape') {
         setCommandPaletteOpen(false);
@@ -427,7 +458,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [triggerSound]);
+  }, [triggerSound, viewMode, handleOpenPalette]);
 
   // Drag Window logic handlers - buttery smooth macOS-style dragging
   const draggedWindowRef = useRef<string | null>(null);
@@ -670,10 +701,14 @@ export default function App() {
     setPlayingMessageIndex(null);
   }, [currentTTSAudio]);
 
-  const handleSendTwinMessage = useCallback(async () => {
-    if (!twinInput.trim()) return;
-    const userMsg = twinInput.trim();
+  // Last OS action the twin performed, shown as an in-chat receipt banner.
+  const [twinActionNote, setTwinActionNote] = useState<string | null>(null);
+
+  const handleSendTwinMessage = useCallback(async (override?: string) => {
+    const userMsg = (override ?? twinInput).trim();
+    if (!userMsg) return;
     setTwinInput('');
+    setTwinActionNote(null);
     setTwinMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setTwinLoading(true);
     triggerSound(1100, 0.03);
@@ -703,6 +738,23 @@ export default function App() {
         onSources: (items) => {
           twinSourcesRef.current = items;
         },
+        onAction: (action) => {
+          // The twin operates the portfolio: validated server-side, then
+          // re-validated here (defense in depth) before dispatch.
+          if (action.type === 'open_window' && action.window && isOsWindowId(action.window)) {
+            handleAssistantAction({ type: 'open_window', window: action.window });
+            setTwinActionNote(`Opened the ${action.window} window`);
+          } else if (action.type === 'switch_theme' && action.theme && isOsTheme(action.theme)) {
+            handleAssistantAction({ type: 'switch_theme', theme: action.theme });
+            setTwinActionNote(`Switched to ${action.theme} theme`);
+          } else if (action.type === 'open_link' && isOpenableExternalUrl(action.url)) {
+            handleAssistantAction({ type: 'open_link', url: action.url });
+            setTwinActionNote('Opened the requested link');
+          } else {
+            return;
+          }
+          triggerSound(900, 0.05);
+        },
       });
 
       const sources = twinSourcesRef.current.length ? twinSourcesRef.current : undefined;
@@ -730,7 +782,7 @@ export default function App() {
       setTwinLoading(false);
       if (!muted) speakText(fallbackReply, twinMessages.length + 1);
     }
-  }, [twinInput, twinMessages, speakText, muted]);
+  }, [twinInput, twinMessages, speakText, muted, handleAssistantAction]);
 
   const handleSendBrief = useCallback(async () => {
     if (!briefForm.goals.trim()) return;
@@ -1055,6 +1107,7 @@ export default function App() {
           theme={theme}
           onLaunchOS={handleWarpAndEnter}
           onOpenWindowDirectly={handleOpenWindowDirectly}
+          onOpenPalette={handleOpenPalette}
           articles={articles}
           onOpenArticleDirectly={handleOpenArticleDirectly}
         />
@@ -1168,6 +1221,7 @@ export default function App() {
               {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-sky-400" />}
             </button>
 
+              <ApiStatusChip theme={theme} className="hidden sm:inline-flex" />
               <div className="hidden sm:flex items-center gap-1.5 text-zinc-400 font-mono tracking-wider font-semibold bg-zinc-950/45 border border-zinc-800/40 px-2 py-0.5 rounded select-none">
                 <Clock className="w-3.5 h-3.5 text-sky-400" />
                 <span><ClockText /> (UTC)</span>
@@ -1445,6 +1499,7 @@ export default function App() {
                       twinInput={twinInput}
                       setTwinInput={setTwinInput}
                       handleSendTwinMessage={handleSendTwinMessage}
+                      actionNote={twinActionNote}
                       playingMessageIndex={playingMessageIndex}
                       speakText={speakText}
                       stopSpeaking={stopSpeaking}

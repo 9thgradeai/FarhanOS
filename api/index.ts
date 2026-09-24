@@ -53,6 +53,13 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
+    // ─── GET /api/health ─────────────────────────────────────────────────
+    if ((path === '/api/health' || path === '/api/health/') && req.method === 'GET') {
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(200).json({ status: 'ok', runtime: 'vercel', time: new Date().toISOString() });
+      return;
+    }
+
     // ─── POST /api/ask-twin ──────────────────────────────────────────────
     if (path.startsWith('/api/ask-twin') && req.method === 'POST') {
       try {

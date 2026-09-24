@@ -46,6 +46,7 @@ export const BOOT_SCRIPT: BootLine[] = [
   { kind: 'ok', text: 'Compiled portfolio bundle · 0 warnings', cps: 150, after: 100 },
   { kind: 'ok', text: 'Optimized assets · fonts + images prefetched', cps: 150, after: 120 },
   { kind: 'out', text: 'Establishing secure session → portfolio', cps: 140, after: 120 },
-  { kind: 'cmd', prompt: 'visitor@portfolio:~$', text: 'open portfolio', cps: 76, after: 160 },
-  { kind: 'info', text: 'Launching experience…', cps: 100 },
+  { kind: 'cmd', prompt: 'visitor@portfolio:~$', text: 'farhanos --boot desktop', cps: 76, after: 160 },
+  { kind: 'ok', text: 'Desktop environment mounted · neural core online', cps: 130, after: 120 },
+  { kind: 'info', text: 'Rendering workspace →', cps: 100 },
 ];

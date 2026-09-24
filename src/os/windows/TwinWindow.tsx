@@ -14,7 +14,9 @@ interface TwinWindowProps {
   twinLoading: boolean;
   twinInput: string;
   setTwinInput: (val: string) => void;
-  handleSendTwinMessage: () => void;
+  handleSendTwinMessage: (override?: string) => void;
+  /** Receipt banner for the last OS action the twin performed. */
+  actionNote?: string | null;
   playingMessageIndex: number | null;
   speakText: (text: string, index: number) => void;
   stopSpeaking: () => void;
@@ -27,6 +29,7 @@ export default function TwinWindow({
   twinInput,
   setTwinInput,
   handleSendTwinMessage,
+  actionNote,
   playingMessageIndex,
   speakText,
   stopSpeaking,
@@ -123,18 +126,27 @@ export default function TwinWindow({
         )}
       </div>
 
-      {/* Chat Suggestion Prompt Chips */}
+      {/* Action receipt: the twin operates the portfolio, not just chats. */}
+      {actionNote && (
+        <div role="status" className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[10px] font-mono">
+          <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          {actionNote}
+        </div>
+      )}
+
+      {/* Chat Suggestion Prompt Chips — tapping sends immediately. */}
       <div className="border-t border-zinc-800/40 pt-2 grid grid-cols-2 gap-1.5 z-10">
         {[
           "Explain depression text research",
-          "What bimodal stack is in use?",
+          "Open the Research Lab",
           "What SaaS packages did Farhan build?",
-          "Give brief overview of Farhan"
+          "Switch to cyberpunk theme"
         ].map((chip) => (
           <button
             key={chip}
-            onClick={() => { setTwinInput(chip); }}
-            className="text-[10px] text-left p-1.5 rounded-lg bg-zinc-950/30 hover:bg-zinc-950/80 border border-zinc-900 text-zinc-400 hover:text-slate-200 truncate cursor-pointer transition-colors"
+            onClick={() => { handleSendTwinMessage(chip); }}
+            disabled={twinLoading}
+            className="text-[10px] text-left p-1.5 rounded-lg bg-zinc-950/30 hover:bg-zinc-950/80 border border-zinc-900 text-zinc-400 hover:text-slate-200 truncate cursor-pointer transition-colors disabled:opacity-50"
           >
             → {chip}
           </button>
@@ -154,7 +166,7 @@ export default function TwinWindow({
           className="flex-1 scroll-p-2 bg-black/60 border border-zinc-800 rounded-lg py-2 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-purple-500/50 text-[11px] text-slate-100 placeholder-zinc-500"
         />
         <button
-          onClick={handleSendTwinMessage}
+          onClick={() => handleSendTwinMessage()}
           disabled={!twinInput.trim() || twinLoading}
           className={`p-2.5 rounded-lg cursor-pointer ${styleSet.btnPrimary}`}
           aria-label="Send message"
