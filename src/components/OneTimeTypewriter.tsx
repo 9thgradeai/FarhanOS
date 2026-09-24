@@ -38,27 +38,28 @@ export default function OneTimeTypewriter({
     }
   }, [displayed, text, speed, isComplete]);
 
-  if (reducedMotion) return <span className={className}>{text}</span>;
+  if (reducedMotion) return <span className={`block w-full text-center ${className}`}>{text}</span>;
 
   return (
-    <span className={`inline-block ${className}`}>
+    // Full-width block: the box never shrink-wraps, so the line cannot drift
+    // while typing. The caret always reserves space (transparent when done) so
+    // blinking/completion never shifts the centered text by half a caret.
+    <span className={`block w-full text-center ${className}`}>
       {/* Screen readers get the complete sentence immediately */}
       <span className="sr-only">{text}</span>
       <motion.span
         aria-hidden="true"
-        className="inline-block"
+        className="inline-block max-w-full"
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25 }}
       >
         {displayed}
-        {!isComplete && (
-          <motion.span
-            aria-hidden="true"
-            animate={{ opacity: [1, 0] }}
-            transition={{ duration: 0.55, repeat: Infinity, repeatDelay: 0.15 }}
-            className="inline-block w-[0.6ex] h-[0.9em] ml-[0.15rem] bg-current align-middle rounded-sm"
-          />
-        )}
+        <motion.span
+          aria-hidden="true"
+          animate={{ opacity: isComplete ? 0 : [1, 0] }}
+          transition={{ duration: 0.55, repeat: isComplete ? 0 : Infinity, repeatDelay: 0.15 }}
+          className="inline-block w-[0.6ex] h-[0.9em] ml-[0.15rem] bg-current align-middle rounded-sm"
+        />
       </motion.span>
     </span>
   );

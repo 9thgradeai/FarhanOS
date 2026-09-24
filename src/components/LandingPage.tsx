@@ -569,9 +569,9 @@ export default function LandingPage({
           </button>
         </div>
 
-        {/* Secondary controls and Socials */}
-        <div 
-          className="animate-fade-in-delay-03 flex items-center justify-center gap-3 mt-8 text-[9px] font-mono"
+        {/* Secondary controls and Socials — wraps on narrow screens so no icon is ever pushed off-viewport */}
+        <div
+          className="animate-fade-in-delay-03 flex flex-wrap items-center justify-center gap-2 sm:gap-3 mt-8 px-2 max-w-full text-[9px] font-mono"
         >
           <button 
             onClick={() => onOpenWindowDirectly('brief')}

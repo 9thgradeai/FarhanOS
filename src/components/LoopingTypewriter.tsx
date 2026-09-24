@@ -54,27 +54,29 @@ export default function LoopingTypewriter({
     return () => clearTimeout(timeoutId);
   }, [displayed, text, speed, isComplete, isLooping, holdTime]);
 
-  if (reducedMotion) return <span className={className}>{text}</span>;
+  if (reducedMotion) return <span className={`block w-full text-center ${className}`}>{text}</span>;
+
+  const caretVisible = !isComplete || isLooping;
 
   return (
-    <span className={`inline-block ${className}`}>
+    // Full-width block + permanently reserved caret space: no drift while
+    // typing, no jump when blinking or when the loop restarts.
+    <span className={`block w-full text-center ${className}`}>
       {/* Screen readers get the complete sentence immediately */}
       <span className="sr-only">{text}</span>
       <motion.span
         aria-hidden="true"
-        className="inline-block"
+        className="inline-block max-w-full"
         animate={{ opacity: 1 }}
         transition={{ duration: 0.25 }}
       >
         {displayed}
-        {(!isComplete || isLooping) && (
-          <motion.span
-            aria-hidden="true"
-            animate={{ opacity: [1, 0] }}
-            transition={{ duration: 0.55, repeat: Infinity, repeatDelay: 0.15 }}
-            className="inline-block w-[0.6ex] h-[0.9em] ml-[0.15rem] bg-current align-middle rounded-sm"
-          />
-        )}
+        <motion.span
+          aria-hidden="true"
+          animate={{ opacity: caretVisible ? [1, 0] : 0 }}
+          transition={{ duration: 0.55, repeat: caretVisible ? Infinity : 0, repeatDelay: 0.15 }}
+          className="inline-block w-[0.6ex] h-[0.9em] ml-[0.15rem] bg-current align-middle rounded-sm"
+        />
       </motion.span>
     </span>
   );
