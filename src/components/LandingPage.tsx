@@ -61,6 +61,16 @@ export default function LandingPage({
     onEscape: () => setMobileMenuOpen(false),
   });
 
+  // Lock background scroll while the mobile drawer is open.
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileMenuOpen]);
+
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(mq.matches);
@@ -125,8 +135,8 @@ export default function LandingPage({
   }, []);
 
   const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  }, [prefersReducedMotion]);
 
   const handleAnchorClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -137,15 +147,16 @@ export default function LandingPage({
       const targetTop = rect.top + scrollTop - 64; // offset the h-16 (64px) sticky header
       window.scrollTo({
         top: targetTop,
-        behavior: 'smooth'
+        behavior: prefersReducedMotion ? 'auto' : 'smooth'
       });
     }
-  }, []);
+  }, [prefersReducedMotion]);
 
   // Auto-play Testimonials — deferred to after LCP, respects pause state
   useEffect(() => {
     const startRotation = () => {
       const timer = setInterval(() => {
+        if (document.hidden) return;
         if (!testimonialPaused) {
           setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
         }
@@ -308,24 +319,24 @@ export default function LandingPage({
       <div className={`pointer-events-none fixed inset-0 z-0 bg-gradient-to-br ${styleSet.gradientBg} opacity-80`} />
 
       {/* HEADER BAR */}
-      <header 
-        className="animate-slide-down"
+      <header
+        className="animate-slide-down sticky top-0 z-[100]"
       >
-        <div className={`sticky top-0 z-[100] h-16 px-4 md:px-12 flex items-center justify-between border-b ${theme === 'light' ? 'border-slate-200/80 bg-white/70' : 'border-zinc-900/60 bg-black/45'} backdrop-blur-md transition-all`}>
+        <div className={`h-16 px-4 md:px-12 flex items-center justify-between border-b ${theme === 'light' ? 'border-slate-200/80 bg-white/70' : 'border-zinc-900/60 bg-black/45'} backdrop-blur-md transition-all`}>
           <div className="flex items-center gap-3">
             <span 
               className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-badge-pulse"
             />
             <div className="flex flex-col">
               <span className={`text-xs font-black tracking-widest uppercase font-sans ${theme === 'light' ? 'text-slate-800' : 'text-slate-100'}`}>FARHAN KABIR</span>
-              <span className="hidden lg:block text-[8.5px] font-mono text-zinc-550 uppercase tracking-widest">COGNITIVE SYSTEMS ARCHITECT</span>
+              <span className="hidden lg:block text-[10px] font-mono text-zinc-550 uppercase tracking-widest">COGNITIVE SYSTEMS ARCHITECT</span>
             </div>
           </div>
 
           {/* Hamburger button - mobile only */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="site-mobile-hamburger md:hidden flex items-center justify-center w-8 h-8 rounded text-zinc-300 hover:text-white cursor-pointer"
+            className="site-mobile-hamburger md:hidden flex items-center justify-center w-11 h-11 rounded text-zinc-300 hover:text-white cursor-pointer"
             aria-label="Toggle menu"
             aria-expanded={mobileMenuOpen}
           >
@@ -369,8 +380,8 @@ export default function LandingPage({
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="site-mobile-overlay fixed inset-0 z-[9999] md:hidden">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div ref={mobileMenuRef} className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
+          <div aria-hidden="true" className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+          <div ref={mobileMenuRef} role="dialog" aria-modal="true" aria-label="Navigation menu" className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800/40">
               <span className="text-xs font-mono font-bold text-white tracking-tight">NAVIGATION</span>
               <button
@@ -417,7 +428,7 @@ export default function LandingPage({
       {/* Main content landmark: hero + anchored sections (#about, #skills, …) */}
       <main id="main-content">
       {/* SECTION 1: HERO / INTRODUCTION */}
-      <section id="hero-content" aria-labelledby="hero-heading" className="relative min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6 md:px-12 py-16 text-center select-none z-10">
+      <section id="hero-content" aria-labelledby="hero-heading" className="relative min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6 md:px-12 py-16 text-center select-none z-10 overflow-x-clip">
         {/* Single primary H1 (visually hidden; visual headline is the typewriter effect) */}
         <h1 id="hero-heading" className="sr-only">
           Farhan Kabir — AI Engineer and Full-Stack Developer specializing in NLP and LLM applications
@@ -541,7 +552,7 @@ export default function LandingPage({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {}}
-              className="p-2 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 text-zinc-400 hover:text-white transition-all cursor-pointer hover:scale-115 active:scale-95"
+              className="min-w-11 min-h-11 p-2 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/50 hover:bg-zinc-900/60 text-zinc-400 hover:text-white transition-all cursor-pointer hover:scale-115 active:scale-95 flex items-center justify-center"
               title={social.title}
               aria-label={social.title}
             >

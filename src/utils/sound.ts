@@ -5,16 +5,16 @@
 
 let ctx: AudioContext | null = null;
 let muted = false;
+// Last-play timestamp: throttles rapid hover/repeat triggers so stacked
+// oscillators can't pile up faster than human perception.
+let lastPlayAt = 0;
+const MIN_INTERVAL_MS = 30;
 
-const STORAGE_KEY = 'farhanos:muted';
+// NOTE: mute persistence lives in osState (single source of truth, applied by
+// App on mount). This module keeps the flag in memory only.
 
 export function setMuted(value: boolean): void {
   muted = value;
-  try {
-    localStorage.setItem(STORAGE_KEY, value ? '1' : '0');
-  } catch {
-    /* ignore */
-  }
 }
 
 function getCtx(): AudioContext | null {
@@ -47,6 +47,9 @@ export function playSound(
   opts: ToneOptions = {},
 ): void {
   if (muted) return;
+  const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  if (nowMs - lastPlayAt < MIN_INTERVAL_MS) return;
+  lastPlayAt = nowMs;
   const ac = getCtx();
   if (!ac) return;
   try {

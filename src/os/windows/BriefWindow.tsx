@@ -1,6 +1,7 @@
 import { Cpu, Workflow, Check, RefreshCw, Calendar } from 'lucide-react';
-import { siteConfig } from '../../config/site';
 
+import { siteConfig } from '../../config/site';
+import { notify } from '../../components/Toast';
 interface BriefForm {
   projectType: string;
   budget: string;
@@ -183,9 +184,9 @@ export default function BriefWindow({
                             summary: briefSummary,
                           }),
                         });
-                        alert('Brief sent via Formspree.');
+                        notify('success', 'Brief sent via Formspree.');
                       } catch {
-                        alert('Formspree delivery failed — please use Dispatch Brief or email directly.');
+                        notify('error', 'Formspree delivery failed — please use Dispatch Brief or email directly.');
                       }
                     }}
                     className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold p-1 px-3 border border-zinc-700 rounded text-[9.5px] cursor-pointer"

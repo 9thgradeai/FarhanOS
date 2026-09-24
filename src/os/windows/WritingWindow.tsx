@@ -35,7 +35,7 @@ export default function WritingWindow({
               className={`w-full text-left p-2 rounded-lg border flex flex-col gap-0.5 transition-all cursor-pointer ${selectedArticle.id === a.id ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-transparent border-zinc-900 text-zinc-400 hover:bg-zinc-950'}`}
             >
               <span className="font-extrabold text-[10.5px] line-clamp-1 truncate">{a.title}</span>
-              <div className="flex items-center justify-between text-[8.5px] text-zinc-500 mt-0.5 font-mono">
+              <div className="flex items-center justify-between text-[10px] text-zinc-500 mt-0.5 font-mono">
                 <span>{a.category}</span>
                 <span>{a.readTime}</span>
               </div>

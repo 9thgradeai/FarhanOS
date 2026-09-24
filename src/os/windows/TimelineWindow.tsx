@@ -22,7 +22,7 @@ export default function TimelineWindow({ styleSet, selectedTimeline, setSelected
               className={`w-full text-left p-2 rounded-lg border flex items-center justify-between transition-all cursor-pointer ${selectedTimeline.year === item.year ? 'bg-sky-500/10 border-sky-500/30 text-sky-300 font-bold' : 'bg-transparent border-zinc-900 text-zinc-400 hover:bg-zinc-950'}`}
             >
               <span className="text-[10.5px]">{item.company}</span>
-              <span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[8.5px] font-mono">{item.year}</span>
+              <span className="bg-zinc-900 px-1.5 py-0.5 rounded text-[10px] font-mono">{item.year}</span>
             </button>
           ))}
         </div>

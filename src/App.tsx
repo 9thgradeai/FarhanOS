@@ -64,6 +64,8 @@ import {
   isOsWindowId,
   type AssistantAction,
 } from './utils/osActions';
+import { useFocusTrap } from './hooks/useFocusTrap';
+import { Toaster, notify } from './components/Toast';
 
 
 export default function App() {
@@ -71,6 +73,16 @@ export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'os'>('landing');
   const [isWarping, setIsWarping] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Lock background scroll while the OS mobile drawer is open.
+  useEffect(() => {
+    if (viewMode !== 'os' || !mobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [viewMode, mobileMenuOpen]);
 
   // Restore the visitor's saved OS session (theme, layout, accent, wallpaper).
   const initialOs = useMemo(() => loadOsState(), []);
@@ -118,9 +130,18 @@ export default function App() {
       whiteboard: { x: baseX + 190, y: baseY + 40, isMaximized: false },
       profTimeline: { x: baseX + 110, y: baseY + 170, isMaximized: false },
     };
+    // Sanitize persisted positions: a desktop-saved layout must never strand
+    // windows off-screen on a smaller viewport, and corrupt values fall back.
     if (initialOs.windowPositions) {
       for (const k of Object.keys(initialOs.windowPositions)) {
-        if (initialOs.windowPositions[k]) defaults[k] = initialOs.windowPositions[k];
+        const saved = initialOs.windowPositions[k];
+        if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) {
+          defaults[k] = {
+            x: Math.max(-160, Math.min(saved.x, 1600)),
+            y: Math.max(0, Math.min(saved.y, 1200)),
+            isMaximized: saved.isMaximized === true,
+          };
+        }
       }
     }
     return defaults;
@@ -129,7 +150,8 @@ export default function App() {
 
   const osTimelineProgressLineRef = useRef<HTMLDivElement | null>(null);
 
-  // Dynamic window width for responsiveness (debounced)
+  // Dynamic window width for responsiveness (debounced). Window positions
+  // are re-clamped here so rotation/resize never strands title bars off-screen.
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
 
   useEffect(() => {
@@ -138,6 +160,15 @@ export default function App() {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         setWindowWidth(window.innerWidth);
+        setWindowPositions(prev => {
+          const next: typeof prev = {};
+          for (const k of Object.keys(prev)) {
+            const p = prev[k];
+            const c = clampWindowPos(p.x, p.y);
+            next[k] = { ...p, x: c.x, y: c.y };
+          }
+          return next;
+        });
       }, 150);
     };
     window.addEventListener('resize', handleResize);
@@ -178,9 +209,11 @@ export default function App() {
     };
     document.addEventListener('click', resume);
     document.addEventListener('keydown', resume);
+    document.addEventListener('pointerdown', resume);
     return () => {
       document.removeEventListener('click', resume);
       document.removeEventListener('keydown', resume);
+      document.removeEventListener('pointerdown', resume);
     };
   }, []);
 
@@ -252,6 +285,13 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const paletteListRef = useRef<HTMLDivElement | null>(null);
+  // Focus trap for the command palette: Tab cycles inside, Esc closes,
+  // focus returns to the invoking control on unmount.
+  const closePalette = useCallback(() => setCommandPaletteOpen(false), []);
+  const paletteTrapRef = useFocusTrap({
+    enabled: commandPaletteOpen,
+    onEscape: closePalette,
+  });
 
   // Ask Twin AI State
   const [twinInput, setTwinInput] = useState('');
@@ -391,12 +431,11 @@ export default function App() {
 
   // Drag Window logic handlers - buttery smooth macOS-style dragging
   const draggedWindowRef = useRef<string | null>(null);
-  const dragOffsetRef = useRef({ x: 0, y: 0 });
-  const dragVelocityRef = useRef({ x: 0, y: 0 });
-  const lastDragPosRef = useRef({ x: 0, y: 0 });
-  const lastDragTimeRef = useRef(0);
+  const dragPointerIdRef = useRef<number | null>(null);
+  const lastPointerRef = useRef({ x: 0, y: 0 });
   const currentPosRef = useRef({ x: 0, y: 0 });
-  const momentumRafRef = useRef<number | null>(null);
+  const pendingPosRef = useRef<{ x: number; y: number } | null>(null);
+  const dragRafRef = useRef<number | null>(null);
 
   // Keep at least part of the title bar inside the viewport
   const clampWindowPos = useCallback((x: number, y: number) => {
@@ -407,118 +446,95 @@ export default function App() {
     };
   }, []);
 
-  const handleMouseDown = (windowId: string, e: React.MouseEvent) => {
+  // Pointer-event drag: works for mouse, touch, and stylus. Pointer capture
+  // on the title bar means no window-level listeners are needed, and deltas
+  // come from clientX/Y (movementX/Y is unreliable on touch/trackpads).
+  // State commits are rAF-throttled to one render per frame.
+  const flushDragPos = useCallback(() => {
+    const activeWindow = draggedWindowRef.current;
+    const pending = pendingPosRef.current;
+    dragRafRef.current = null;
+    if (!activeWindow || !pending) return;
+    const { x, y } = pending;
+    pendingPosRef.current = null;
+    setWindowPositions(prev => ({
+      ...prev,
+      [activeWindow]: { ...prev[activeWindow], x, y }
+    }));
+  }, []);
+
+  const handleDragStart = (windowId: string, e: React.PointerEvent) => {
     if (windowPositions[windowId]?.isMaximized) return;
+    // Mobile/tablet portrait uses a fixed full-area layout — nothing to drag.
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     e.preventDefault();
     setFocusedWindow(windowId);
 
-    const currentX = windowPositions[windowId]?.x || 0;
-    const currentY = windowPositions[windowId]?.y || 0;
-
     draggedWindowRef.current = windowId;
-    dragOffsetRef.current = {
-      x: e.clientX - currentX,
-      y: e.clientY - currentY,
+    dragPointerIdRef.current = e.pointerId;
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
+    currentPosRef.current = {
+      x: windowPositions[windowId]?.x || 0,
+      y: windowPositions[windowId]?.y || 0,
     };
-    lastDragPosRef.current = { x: currentX, y: currentY };
-    lastDragTimeRef.current = performance.now();
-    dragVelocityRef.current = { x: 0, y: 0 };
-    currentPosRef.current = { x: currentX, y: currentY };
+    pendingPosRef.current = null;
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch { /* older browsers — moves still fire while pressed */ }
 
     setDraggedWindow(windowId);
     triggerSound(500, 0.01);
   };
 
-  const applyMomentum = useCallback(() => {
+  const handleDragMove = useCallback((e: React.PointerEvent) => {
     const activeWindow = draggedWindowRef.current;
-    if (!activeWindow) return;
+    if (!activeWindow || e.pointerId !== dragPointerIdRef.current) return;
 
-    let velX = dragVelocityRef.current.x;
-    let velY = dragVelocityRef.current.y;
-    let posX = currentPosRef.current.x;
-    let posY = currentPosRef.current.y;
-
-    const friction = 0.92;
-    const minVel = 0.5;
-
-    const step = () => {
-      velX *= friction;
-      velY *= friction;
-
-      if (Math.abs(velX) < minVel && Math.abs(velY) < minVel) {
-        momentumRafRef.current = null;
-        return;
-      }
-
-      posX += velX;
-      posY += velY;
-
-      const clamped = clampWindowPos(posX, posY);
-      if (clamped.x !== posX) { velX = 0; dragVelocityRef.current.x = 0; }
-      if (clamped.y !== posY) { velY = 0; dragVelocityRef.current.y = 0; }
-      posX = clamped.x;
-      posY = clamped.y;
-
-      setWindowPositions(prev => ({
-        ...prev,
-        [activeWindow]: { ...prev[activeWindow], x: posX, y: posY }
-      }));
-
-      currentPosRef.current = { x: posX, y: posY };
-      momentumRafRef.current = requestAnimationFrame(step);
-    };
-
-    momentumRafRef.current = requestAnimationFrame(step);
-  }, [clampWindowPos]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    const activeWindow = draggedWindowRef.current;
-    if (!activeWindow) return;
-
-    const dx = e.movementX;
-    const dy = e.movementY;
+    const dx = e.clientX - lastPointerRef.current.x;
+    const dy = e.clientY - lastPointerRef.current.y;
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
 
     const next = clampWindowPos(currentPosRef.current.x + dx, currentPosRef.current.y + dy);
     currentPosRef.current = { x: next.x, y: next.y };
-
-    setWindowPositions(prev => ({
-      ...prev,
-      [activeWindow]: { ...prev[activeWindow], x: currentPosRef.current.x, y: currentPosRef.current.y }
-    }));
-  }, [clampWindowPos]);
-
-  const handleMouseUp = useCallback(() => {
-    const activeWindow = draggedWindowRef.current;
-    if (activeWindow) {
-      if (momentumRafRef.current) cancelAnimationFrame(momentumRafRef.current);
-
-      const clamped = clampWindowPos(currentPosRef.current.x, currentPosRef.current.y);
-      currentPosRef.current = { x: clamped.x, y: clamped.y };
-
-      setWindowPositions(prev => ({
-        ...prev,
-        [activeWindow]: { ...prev[activeWindow], x: currentPosRef.current.x, y: currentPosRef.current.y }
-      }));
-
-      draggedWindowRef.current = null;
-      setDraggedWindow(null);
+    pendingPosRef.current = next;
+    if (dragRafRef.current == null) {
+      dragRafRef.current = requestAnimationFrame(flushDragPos);
     }
-  }, [clampWindowPos]);
+  }, [clampWindowPos, flushDragPos]);
+
+  const handleDragEnd = useCallback((e: React.PointerEvent) => {
+    if (draggedWindowRef.current == null || e.pointerId !== dragPointerIdRef.current) return;
+    if (dragRafRef.current != null) {
+      cancelAnimationFrame(dragRafRef.current);
+      dragRafRef.current = null;
+    }
+    flushDragPos();
+    draggedWindowRef.current = null;
+    dragPointerIdRef.current = null;
+    setDraggedWindow(null);
+  }, [flushDragPos]);
+
+  // Abort an in-flight drag if the component unmounts mid-gesture.
+  useEffect(() => {
+    return () => {
+      if (dragRafRef.current != null) cancelAnimationFrame(dragRafRef.current);
+      draggedWindowRef.current = null;
+    };
+  }, []);
 
   const handleAnimationEnd = useCallback((windowId: string) => {
     setWindowReady(prev => ({ ...prev, [windowId]: true }));
   }, []);
 
-  useEffect(() => {
-    if (draggedWindow) {
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [draggedWindow, handleMouseMove, handleMouseUp]);
+  // Move DOM focus to a window's title bar so keyboard and screen-reader
+  // users land inside the window that just opened / received focus.
+  const focusWindow = useCallback((windowId: string) => {
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-window-title="${windowId}-title"]`)
+        ?.focus({ preventScroll: true });
+    });
+  }, []);
 
   // Opening & Focusing a window
   const openWindow = useCallback((windowId: string) => {
@@ -532,7 +548,8 @@ export default function App() {
     setFocusedWindow(windowId);
     setWindowReady(prev => ({ ...prev, [windowId]: false }));
     track('window_open', { window: windowId });
-  }, []);
+    focusWindow(windowId);
+  }, [focusWindow]);
 
   // Apply persisted accent + mute on first paint (the setters only run on change).
   useEffect(() => {
@@ -585,13 +602,21 @@ export default function App() {
 
   const closeWindow = useCallback((windowId: string) => {
     triggerSound(400, 0.06);
+    document.getElementById('farhanos-announcer')!.textContent = `Window ${windowId} closed`;
+    const rest = openWindows.filter(w => w !== windowId && !minimizedWindows.includes(w));
     setOpenWindows(prev => prev.filter(w => w !== windowId));
     setWindowReady(prev => {
       const next = { ...prev };
       delete next[windowId];
       return next;
     });
-  }, []);
+    // Land focus on the next visible window so keyboard users aren't stranded.
+    if (rest.length > 0) {
+      const next = rest[rest.length - 1];
+      setFocusedWindow(next);
+      focusWindow(next);
+    }
+  }, [openWindows, minimizedWindows, focusWindow]);
 
   const minimizeWindow = useCallback((windowId: string) => {
     triggerSound(450, 0.04);
@@ -601,10 +626,11 @@ export default function App() {
     });
     setFocusedWindow(prev => {
       const rest = openWindows.filter(w => w !== windowId && !minimizedWindows.includes(w));
-      document.getElementById('farhanos-announcer')!.textContent = `Window ${windowId} closed`;
+      document.getElementById('farhanos-announcer')!.textContent = `Window ${windowId} minimized`;
+      if (rest.length > 0) focusWindow(rest[rest.length - 1]);
       return rest.length > 0 ? rest[rest.length - 1] : prev;
     });
-  }, [openWindows, minimizedWindows]);
+  }, [openWindows, minimizedWindows, focusWindow]);
 
   const toggleMaximize = useCallback((windowId: string) => {
     triggerSound(800, 0.04);
@@ -689,7 +715,8 @@ export default function App() {
         return [...withoutPartial, { role: 'assistant' as const, content: reply, sources }];
       });
       setTwinLoading(false);
-      speakText(reply, twinMessages.length + 1);
+      // Honor the visitor's mute preference — never auto-play voice uninvited.
+      if (!muted) speakText(reply, twinMessages.length + 1);
     } catch (err: any) {
       console.warn('Backend twin service failed, using local fallback:', err);
       const fallbackReply = getAskTwinFallback(userMsg, historyPayload);
@@ -701,9 +728,9 @@ export default function App() {
         return [...withoutPartial, { role: 'assistant' as const, content: fallbackReply }];
       });
       setTwinLoading(false);
-      speakText(fallbackReply, twinMessages.length + 1);
+      if (!muted) speakText(fallbackReply, twinMessages.length + 1);
     }
-  }, [twinInput, twinMessages, speakText]);
+  }, [twinInput, twinMessages, speakText, muted]);
 
   const handleSendBrief = useCallback(async () => {
     if (!briefForm.goals.trim()) return;
@@ -736,11 +763,11 @@ export default function App() {
 
   const handleDispatchBrief = useCallback(async () => {
     if (!briefForm.email.trim()) {
-      alert("Please provide a valid transmission email address before dispatching.");
+      notify('error', 'Please provide a valid transmission email address before dispatching.');
       return;
     }
     if (!/\S+@\S+\.\S+/.test(briefForm.email)) {
-      alert("Please provide a valid email structure.");
+      notify('error', 'Please provide a valid email structure.');
       return;
     }
     setBriefDispatchLoading(true);
@@ -775,7 +802,7 @@ export default function App() {
         throw new Error(errMsg);
       }
       
-      alert("Handshake confirmed. Strategy Brief successfully transmitted to Farhan's secure channel.");
+      notify('success', "Handshake confirmed. Strategy Brief successfully transmitted to Farhan's secure channel.");
       setBriefSummary(null);
       
       setBriefForm(prev => ({
@@ -787,7 +814,7 @@ export default function App() {
     } catch (err) {
       console.warn('Brief dispatch failed:', err);
       const detail = err instanceof Error && err.message ? ` (${err.message})` : '';
-      alert(`Dispatch FAILED — your brief was NOT delivered${detail}. Please retry or email farhankabir133@gmail.com directly.`);
+      notify('error', `Dispatch FAILED — your brief was NOT delivered${detail}. Please retry or email ${siteConfig.contactEmail} directly.`);
     } finally {
       setBriefDispatchLoading(false);
     }
@@ -1073,7 +1100,7 @@ export default function App() {
             {/* Hamburger button - mobile only */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="site-mobile-hamburger md:hidden flex items-center justify-center w-8 h-8 rounded text-zinc-300 hover:text-white cursor-pointer"
+              className="site-mobile-hamburger md:hidden flex items-center justify-center w-11 h-11 rounded text-zinc-300 hover:text-white cursor-pointer"
               aria-label="Toggle menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -1121,6 +1148,16 @@ export default function App() {
               <span>Theme: {theme}</span>
             </button>
 
+            {/* Palette search — mobile entry point (desktop has nav search) */}
+            <button
+              onClick={() => { setCommandPaletteOpen(true); triggerSound(800, 0.03); }}
+              className="md:hidden flex items-center justify-center w-11 h-11 rounded text-zinc-300 hover:text-white capitalize cursor-pointer active:scale-95 transition-all"
+              title="Search projects, research and commands"
+              aria-label="Open command palette search"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+
             {/* Mute toggle — visible on all breakpoints */}
             <button
               onClick={toggleMute}
@@ -1141,8 +1178,8 @@ export default function App() {
           {/* Mobile Menu Overlay */}
           {mobileMenuOpen && (
             <div className="site-mobile-overlay fixed inset-0 z-[9999] md:hidden">
-              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-              <div className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
+              <div aria-hidden="true" className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+              <div role="dialog" aria-modal="true" aria-label="OS menu" className="absolute right-0 top-0 h-full w-72 bg-zinc-950/95 border-l border-zinc-800/60 shadow-2xl flex flex-col">
                 <div className="flex items-center justify-between px-4 h-10 border-b border-zinc-800/40">
                   <span className="text-xs font-mono font-bold text-white tracking-tight">MENU</span>
                   <button
@@ -1327,19 +1364,27 @@ export default function App() {
               };
 
           return (
-            <div 
+            <div
               key={winId}
               id={`window-${winId}`}
+              role="dialog"
+              aria-modal="false"
+              aria-label={`${desktopIco ? desktopIco.label : 'FarhanOS Sandbox'} window`}
               style={windowStyle}
               onClick={() => { setFocusedWindow(winId); triggerSound(400, 0.01); }}
               onAnimationEnd={() => handleAnimationEnd(winId)}
                className={`flex flex-col rounded-xl overflow-hidden shadow-2xl ${draggedWindow === winId ? '' : 'transition-all duration-150'} transform ${styleSet.glass} ${isFocused ? 'ring-2 ring-sky-500/35 scale-[1.002]' : 'opacity-90'} ${windowReady[winId] ? '' : 'animate-window-open'}`}
             >
-              
+
               {/* Window Bar Header */}
-              <div 
-                onMouseDown={(e) => handleMouseDown(winId, e)}
-                className={`h-10 md:h-9 px-3 flex items-center justify-between cursor-move select-none ${styleSet.windowHeader}`}
+              <div
+                data-window-title={`${winId}-title`}
+                tabIndex={-1}
+                onPointerDown={(e) => handleDragStart(winId, e)}
+                onPointerMove={handleDragMove}
+                onPointerUp={handleDragEnd}
+                onPointerCancel={handleDragEnd}
+                className={`h-10 md:h-9 px-3 flex items-center justify-between md:cursor-move touch-none select-none focus:outline-none ${styleSet.windowHeader}`}
               >
                 <div className="flex items-center gap-2 font-semibold tracking-tight text-xs">
                   <WinIcon className="w-3.5 h-3.5 opacity-80" />
@@ -1352,7 +1397,7 @@ export default function App() {
                 <div className="flex items-center gap-1 md:gap-2" onMouseDown={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => minimizeWindow(winId)}
-                    className="p-1.5 md:p-1 text-slate-400 hover:text-white rounded hover:bg-white/10"
+                    className="p-2 md:p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10"
                     title="Minimize"
                     aria-label="Minimize window"
                   >
@@ -1360,7 +1405,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => toggleMaximize(winId)}
-                    className="p-1.5 md:p-1 text-slate-400 hover:text-white rounded hover:bg-white/10"
+                    className="p-2 md:p-1.5 text-slate-400 hover:text-white rounded hover:bg-white/10"
                     title="Toggle Maximize"
                     aria-label="Toggle maximize"
                   >
@@ -1368,7 +1413,7 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => closeWindow(winId)}
-                    className="p-1.5 md:p-1 text-rose-400 hover:text-rose-500 rounded hover:bg-rose-500/10"
+                    className="p-2 md:p-1.5 text-rose-400 hover:text-rose-500 rounded hover:bg-rose-500/10"
                     title="Close Window"
                     aria-label="Close window"
                   >
@@ -1604,6 +1649,7 @@ export default function App() {
                     } else {
                       setFocusedWindow(ico.id);
                       setMinimizedWindows(prev => prev.filter(w => w !== ico.id));
+                      focusWindow(ico.id);
                     }
                   } else {
                     openWindow(ico.id);
@@ -1654,7 +1700,9 @@ export default function App() {
           onClick={() => { setCommandPaletteOpen(false); triggerSound(400, 0.02); }}
         >
           <div
+            ref={paletteTrapRef}
             role="document"
+            aria-label="Command palette results"
             className="w-full max-w-lg bg-[#0e0f17] border border-zinc-800 rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[60vh] select-none animate-scale-up"
             onClick={(e) => e.stopPropagation()}
           >
@@ -1763,6 +1811,7 @@ export default function App() {
         )}
       </>
     )}
+    <Toaster />
     <Suspense fallback={null}>
     <AssistantLauncher
       theme={theme}

@@ -80,7 +80,7 @@ export default function SkillsWindow({ filteredSkills, skillFilter, setSkillFilt
                 className={`p-2.5 rounded-lg border text-center cursor-pointer transition-all hover:scale-103 select-none flex flex-col items-center justify-center gap-1 relative overflow-hidden ${weightPct}`}
               >
                 <span className="text-[10.5px] font-bold md:tracking-tight font-sans text-stone-100">{sk.name}</span>
-                <span className="text-[8px] opacity-75 uppercase tracking-widest font-mono text-zinc-400">{sk.category}</span>
+                <span className="text-[10px] opacity-75 uppercase tracking-widest font-mono text-zinc-400">{sk.category}</span>
                 <div className="flex items-center gap-0.5 mt-1">
                   {Array.from({ length: 5 }).map((_, stIdx) => (
                     <span key={stIdx} className={`w-1 h-1 rounded-full ${stIdx < sk.weight ? 'bg-indigo-400 shadow-[0_0_4px_#818cf8]' : 'bg-zinc-800'}`} />

@@ -260,7 +260,7 @@ function InnovationCard({ project, index, accent, motif, theme, styleSet, prefer
             {monogram}
           </motion.div>
           <div className="flex items-center gap-2">
-            <span className={`text-[8.5px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${styleSet.badgeStyle}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${styleSet.badgeStyle}`}>
               {project.category}
             </span>
             <span className="text-[9px] text-zinc-500 font-mono font-semibold whitespace-nowrap">{project.timeline}</span>
@@ -297,7 +297,7 @@ function InnovationCard({ project, index, accent, motif, theme, styleSet, prefer
       {/* Tech stack */}
       <div className="mb-4 flex flex-wrap gap-1">
         {project.techStack.map((tech) => (
-          <span key={tech} className="text-[8.5px] font-mono rounded bg-zinc-950 border border-zinc-900/40 px-1.5 py-0.5 text-zinc-500">
+          <span key={tech} className="text-[10px] font-mono rounded bg-zinc-950 border border-zinc-900/40 px-1.5 py-0.5 text-zinc-500">
             {tech}
           </span>
         ))}
@@ -347,7 +347,7 @@ function InnovationCard({ project, index, accent, motif, theme, styleSet, prefer
             <span className="font-mono font-bold uppercase tracking-wider" style={{ color: accent.soft }}>Roadmap</span>
             <ul className="mt-1 flex flex-wrap gap-1">
               {project.roadmap.map((r) => (
-                <li key={r} className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[8.5px] text-zinc-400">{r}</li>
+                <li key={r} className="rounded-full border border-zinc-800 bg-zinc-950 px-2 py-0.5 text-[10px] text-zinc-400">{r}</li>
               ))}
             </ul>
           </div>
@@ -604,10 +604,9 @@ function LandingBelowFold() {
                 key={i}
                 whileHover={{ y: -4, opacity: 0.95 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                onClick={() => {}}
-                className={`bg-zinc-950/45 border border-zinc-900 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 cursor-pointer backdrop-blur-md ${styleSet.statCardGlow}`}
+                className={`bg-zinc-950/45 border border-zinc-900 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 backdrop-blur-md ${styleSet.statCardGlow}`}
               >
-                <span className="text-[7.5px] font-mono text-zinc-500 uppercase tracking-widest font-bold">{stat.label}</span>
+                <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">{stat.label}</span>
                 <div className="mt-3">
                   <span className={`text-xl sm:text-2xl font-black block tracking-tight ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>{stat.value}</span>
                   <span className="text-[9px] text-zinc-550 block mt-1 font-sans font-normal">{stat.desc}</span>
@@ -879,11 +878,11 @@ function LandingBelowFold() {
             })}
           </div>
           <div className="flex items-center justify-end gap-2 mt-3">
-            <span className="text-[8px] text-zinc-500 font-mono">Less</span>
+            <span className="text-[10px] text-zinc-500 font-mono">Less</span>
             {[0.1, 0.3, 0.6, 0.9].map((op, i) => (
               <div key={i} className="w-2.5 h-2.5 rounded-sm bg-indigo-500" style={{ opacity: op }} />
             ))}
-            <span className="text-[8px] text-zinc-500 font-mono">More</span>
+            <span className="text-[10px] text-zinc-500 font-mono">More</span>
           </div>
         </motion.div>
       </section>
@@ -988,7 +987,7 @@ function LandingBelowFold() {
                   {Object.entries(study.metrics).map(([key, value]) => (
                     <div key={key} className="text-center">
                       <span className={`text-sm font-black ${theme === 'light' ? 'text-slate-800' : 'text-white'}`}>{value}</span>
-                      <span className="block text-[8px] font-mono text-zinc-500 uppercase">{key}</span>
+                      <span className="block text-[10px] font-mono text-zinc-500 uppercase">{key}</span>
                     </div>
                   ))}
                 </div>
@@ -1245,7 +1244,7 @@ function LandingBelowFold() {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true, margin: "-80px" }}
                       transition={{ type: "spring", stiffness: 400, damping: 20, delay: idx * 0.05 }}
-                      className="text-[8.5px] font-mono px-1.5 py-0.5 rounded-md bg-zinc-950 border border-zinc-900/60 text-zinc-500"
+                      className="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-zinc-950 border border-zinc-900/60 text-zinc-500"
                     >
                       {tech}
                     </motion.span>
@@ -1258,7 +1257,7 @@ function LandingBelowFold() {
       </section>
 
       {/* SECTION 08: PROFESSIONAL TIMELINE (SUMIYA STYLE) */}
-      <section id="prof-timeline" className="relative py-24 px-6 md:px-12 max-w-6xl w-full mx-auto space-y-12 z-10 scroll-mt-16">
+      <section id="prof-timeline" className="relative py-24 px-6 md:px-12 max-w-6xl w-full mx-auto space-y-12 z-10">
         
         {/* Section title */}
         <motion.div 
@@ -1467,7 +1466,7 @@ function LandingBelowFold() {
                   )}
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[8.5px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${styleSet.badgeStyle}`}>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${styleSet.badgeStyle}`}>
                         {paper.publisher}
                       </span>
                       <span className="text-[9px] text-zinc-550 font-semibold">{paper.year}</span>
@@ -1562,7 +1561,7 @@ function LandingBelowFold() {
                       <motion.span 
                         whileHover={{ scale: 1.05, rotate: -2 }}
                         transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                        className={`text-[8.5px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border tracking-wide uppercase ${
                           theme === 'light' ? 'bg-amber-100 text-amber-800 border-amber-250' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
                         }`}
                       >
@@ -1627,7 +1626,7 @@ function LandingBelowFold() {
                       whileInView={{ opacity: 1 }}
                       viewport={{ once: true, margin: "-80px" }}
                       whileHover={{ opacity: 1 }}
-                      className="flex items-center gap-2 text-[8.5px] font-mono text-zinc-500"
+                      className="flex items-center gap-2 text-[10px] font-mono text-zinc-500"
                     >
                       <Clock className="w-3 h-3 text-amber-500" />
                       <span>{article.readTime}</span>
@@ -1849,7 +1848,7 @@ function LandingBelowFold() {
                       setActiveTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
                     }
                   }}
-                  className="p-1.5 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/65 hover:bg-zinc-900/60 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                  className="p-2.5 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/65 hover:bg-zinc-900/60 text-zinc-400 hover:text-white cursor-pointer transition-colors min-w-11 min-h-11 flex items-center justify-center"
                   aria-label="Previous testimonial"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -1866,7 +1865,7 @@ function LandingBelowFold() {
                       setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
                     }
                   }}
-                  className="p-1.5 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/65 hover:bg-zinc-900/60 text-zinc-400 hover:text-white cursor-pointer transition-colors"
+                  className="p-2.5 rounded-lg border border-zinc-850 hover:border-zinc-700 bg-zinc-950/65 hover:bg-zinc-900/60 text-zinc-400 hover:text-white cursor-pointer transition-colors min-w-11 min-h-11 flex items-center justify-center"
                   aria-label="Next testimonial"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -1886,26 +1885,27 @@ function LandingBelowFold() {
             {testimonials.map((_, idx) => (
               <motion.button
                 key={idx}
-                whileHover={{ scale: 1.3 }}
-                animate={{ 
-                  scale: activeTestimonial === idx ? [1, 1.2, 1] : 1,
-                }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 400, 
-                  damping: 20,
-                  repeat: activeTestimonial === idx ? Infinity : 0,
-                  repeatType: "loop",
-                  repeatDelay: 1
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 20
                 }}
                 onClick={() => {
                   setActiveTestimonial(idx);
                 }}
                 aria-label={`Go to testimonial ${idx + 1}`}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  activeTestimonial === idx ? 'bg-indigo-400' : 'bg-zinc-700'
-                }`}
-              />
+                aria-current={activeTestimonial === idx || undefined}
+                className="p-2.5 rounded-full cursor-pointer flex items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className={`block w-2 h-2 rounded-full transition-colors ${
+                    activeTestimonial === idx ? 'bg-indigo-400' : 'bg-zinc-700'
+                  }`}
+                />
+              </motion.button>
             ))}
           </motion.div>
         </motion.div>
@@ -2060,7 +2060,7 @@ function LandingBelowFold() {
                       <span className="text-[9px] font-mono text-zinc-500">{event.date}</span>
                     </div>
                   </div>
-                  <span className={`inline-block px-2 py-0.5 rounded-full text-[8px] font-mono font-bold uppercase tracking-wider ${theme === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-zinc-800 text-zinc-400'}`}>
+                  <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${theme === 'light' ? 'bg-slate-100 text-slate-600' : 'bg-zinc-800 text-zinc-400'}`}>
                     {event.type}
                   </span>
                   <p className={`text-[11px] leading-relaxed ${theme === 'light' ? 'text-slate-600' : 'text-zinc-400'}`}>
@@ -2220,7 +2220,7 @@ function LandingBelowFold() {
                   <Mail className="w-4 h-4" />
                 </motion.div>
                 <div>
-                  <span className="text-[7.5px] text-zinc-500 block">ENVELOPE ADDRESS</span>
+                  <span className="text-[10px] text-zinc-500 block">ENVELOPE ADDRESS</span>
                   <a href="mailto:farhankabir133@gmail.com" onClick={() => {}} className={`text-[11px] font-bold ${theme === 'light' ? 'text-slate-850' : 'text-slate-200'} hover:underline`}>
                     farhankabir133@gmail.com
                   </a>
@@ -2236,7 +2236,7 @@ function LandingBelowFold() {
                   <MapPin className="w-4 h-4" />
                 </motion.div>
                 <div>
-                  <span className="text-[7.5px] text-zinc-500 block">COORDINATE MAPPING</span>
+                  <span className="text-[10px] text-zinc-500 block">COORDINATE MAPPING</span>
                   <span className={`text-[11px] font-bold ${theme === 'light' ? 'text-slate-800' : 'text-slate-250'}`}>
                     Rajshahi, Bangladesh (UTC+6)
                   </span>
@@ -2340,12 +2340,15 @@ function LandingBelowFold() {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-zinc-500 font-semibold block">COGNITIVE NAME</label>
-                    <motion.input 
+                    <label htmlFor="contact-name" className="text-zinc-500 font-semibold block">COGNITIVE NAME</label>
+                    <motion.input
                       whileFocus={{ scale: 1.01 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       animate={formErrors.name ? { x: [0, -4, 4, -4, 4, 0] } : {}}
-                      type="text" 
+                      id="contact-name"
+                      name="name"
+                      autoComplete="name"
+                      type="text"
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
                       placeholder="e.g. Jenkins S."
@@ -2355,12 +2358,15 @@ function LandingBelowFold() {
                   </div>
                   
                   <div className="space-y-1">
-                    <label className="text-zinc-500 font-semibold block">TRANSMISSION EMAIL</label>
-                    <motion.input 
+                    <label htmlFor="contact-email" className="text-zinc-500 font-semibold block">TRANSMISSION EMAIL</label>
+                    <motion.input
                       whileFocus={{ scale: 1.01 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       animate={formErrors.email ? { x: [0, -4, 4, -4, 4, 0] } : {}}
-                      type="email" 
+                      id="contact-email"
+                      name="email"
+                      autoComplete="email"
+                      type="email"
                       value={formEmail}
                       onChange={(e) => setFormEmail(e.target.value)}
                       placeholder="e.g. envelope@domain.com"
@@ -2371,12 +2377,15 @@ function LandingBelowFold() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-zinc-500 font-semibold block">INQUIRY SUBJECT</label>
-                    <motion.input 
+                    <label htmlFor="contact-subject" className="text-zinc-500 font-semibold block">INQUIRY SUBJECT</label>
+                    <motion.input
                       whileFocus={{ scale: 1.01 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       animate={formErrors.subject ? { x: [0, -4, 4, -4, 4, 0] } : {}}
-                      type="text" 
+                      id="contact-subject"
+                      name="subject"
+                      autoComplete="off"
+                      type="text"
                       value={formSubject}
                       onChange={(e) => setFormSubject(e.target.value)}
                       placeholder="e.g. Clinical NLP Model Fine-Tuning"
@@ -2386,11 +2395,13 @@ function LandingBelowFold() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-zinc-500 font-semibold block">TRANSMISSION PAYLOAD (MESSAGE)</label>
-                    <motion.textarea 
+                    <label htmlFor="contact-message" className="text-zinc-500 font-semibold block">TRANSMISSION PAYLOAD (MESSAGE)</label>
+                    <motion.textarea
                       whileFocus={{ scale: 1.01 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       animate={formErrors.message ? { x: [0, -4, 4, -4, 4, 0] } : {}}
+                      id="contact-message"
+                      name="message"
                       rows={4}
                       value={formMessage}
                       onChange={(e) => setFormMessage(e.target.value)}
@@ -2488,7 +2499,7 @@ function LandingBelowFold() {
                 onClick={(e) => { ; handleAnchorClick(e, link.target!); }}
                 whileHover={{ y: -2, scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="relative hover:text-white transition-colors group"
+                className="relative hover:text-white transition-colors group px-2 py-2.5"
               >
                 {link.label}
                 <motion.span 
@@ -2525,8 +2536,9 @@ function LandingBelowFold() {
                 whileHover={{ scale: 1.1, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                className="p-2 rounded-lg border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-white bg-zinc-950/30 transition-colors"
+                className="min-w-11 min-h-11 p-2 rounded-lg border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-white bg-zinc-950/30 transition-colors flex items-center justify-center"
                 title={social.title}
+                aria-label={social.title}
               >
                 <social.Icon className="w-3.5 h-3.5" />
               </motion.a>

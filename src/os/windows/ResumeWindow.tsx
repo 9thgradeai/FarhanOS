@@ -52,7 +52,7 @@ export default function ResumeWindow({ styleSet, resumeAudience, setResumeAudien
               className={`p-2 rounded-lg border text-[10px] text-left flex flex-col gap-0.5 capitalize transition-all cursor-pointer ${resumeAudience === aud.id ? 'bg-pink-500/10 border-pink-500/30 text-pink-300 font-bold' : 'bg-transparent border-zinc-900 text-zinc-400 hover:bg-zinc-950'}`}
             >
               <span>👤 {aud.label}</span>
-              <span className="text-[8px] opacity-70 font-normal leading-normal">{aud.text}</span>
+              <span className="text-[10px] opacity-70 font-normal leading-normal">{aud.text}</span>
             </button>
           ))}
         </div>

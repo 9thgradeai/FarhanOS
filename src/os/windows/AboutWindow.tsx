@@ -62,7 +62,7 @@ export default function AboutWindow({ styleSet }: AboutWindowProps) {
               <p className="text-[10px] text-zinc-500 mb-1.5">{c.issuer}</p>
               <div className="flex flex-wrap gap-1">
                 {c.skills.map((s) => (
-                  <span key={s} className="text-[8.5px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  <span key={s} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
                     {s}
                   </span>
                 ))}

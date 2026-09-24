@@ -44,7 +44,7 @@ export default function ProfTimelineWindow({ osTimelineProgressLineRef }: ProfTi
                         <h4 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors leading-tight">{item.title}</h4>
                         <span className="text-[9px] text-zinc-550 block font-mono mt-0.5">{item.company}</span>
                       </div>
-                      <span className={`px-2 py-0.5 rounded-full text-[8.5px] font-mono border font-medium uppercase ${
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border font-medium uppercase ${
                         item.badgeColor === 'emerald' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
                         item.badgeColor === 'indigo' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' :
                         item.badgeColor === 'pink' ? 'bg-pink-500/10 text-pink-400 border-pink-500/30' :
@@ -63,7 +63,7 @@ export default function ProfTimelineWindow({ osTimelineProgressLineRef }: ProfTi
 
                     <div className="flex flex-wrap gap-1 pt-3 border-t border-zinc-900/60 select-none">
                       {item.technologies.map((t) => (
-                        <span key={t} className="px-1.5 py-0.5 rounded text-[8px] font-mono bg-zinc-950/80 text-zinc-400 border border-zinc-900">{t}</span>
+                        <span key={t} className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-950/80 text-zinc-400 border border-zinc-900">{t}</span>
                       ))}
                     </div>
                   </div>

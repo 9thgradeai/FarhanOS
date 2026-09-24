@@ -67,7 +67,7 @@ export default function TwinWindow({
 
             {/* Message timestamp */}
             {m.timestamp && (
-              <span className="text-[8px] text-zinc-600 font-mono ml-1">
+              <span className="text-[10px] text-zinc-600 font-mono ml-1">
                 {new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date(m.timestamp))}
               </span>
             )}
@@ -101,12 +101,12 @@ export default function TwinWindow({
             {/* RAG source citations */}
             {m.role === 'assistant' && m.sources && m.sources.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
-                <span className="text-[8px] uppercase tracking-wider text-zinc-600 font-mono mr-1 self-center">Sources:</span>
+                <span className="text-[10px] uppercase tracking-wider text-zinc-600 font-mono mr-1 self-center">Sources:</span>
                 {m.sources.map((s, i) => (
                   <span
                     key={`${s.title}-${i}`}
                     title={s.title}
-                    className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 max-w-[160px] truncate"
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 max-w-[160px] truncate"
                   >
                     {s.title}
                   </span>

@@ -31,5 +31,7 @@ export default function ClockText() {
     return () => clearInterval(timerId);
   }, []);
 
-  return <span suppressHydrationWarning>{time}</span>;
+  // Decorative live clock: hidden from screen readers so the 1s tick doesn't
+  // spam the accessibility tree (the static "(UTC)" label beside it remains).
+  return <span aria-hidden="true" suppressHydrationWarning>{time}</span>;
 }

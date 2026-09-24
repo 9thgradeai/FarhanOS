@@ -516,7 +516,7 @@ export default function Whiteboard({ theme, triggerSound }: WhiteboardProps) {
                     </span>
                   )}
                   {/* Subtle color label tooltips */}
-                  <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-1.5 py-0.5 text-[8px] bg-zinc-950 text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition whitespace-nowrap z-50">
+                  <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-1.5 py-0.5 text-[10px] bg-zinc-950 text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition whitespace-nowrap z-50">
                     {c.name}
                   </span>
                 </button>
@@ -533,7 +533,7 @@ export default function Whiteboard({ theme, triggerSound }: WhiteboardProps) {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <span className="text-[10px] font-black text-white pointer-events-none filter drop-shadow-sm">+</span>
-              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-1.5 py-0.5 text-[8px] bg-zinc-950 text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition whitespace-nowrap z-50">
+              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 px-1.5 py-0.5 text-[10px] bg-zinc-950 text-white rounded opacity-0 pointer-events-none group-hover:opacity-100 transition whitespace-nowrap z-50">
                 Custom Color
               </span>
             </div>
@@ -663,7 +663,7 @@ export default function Whiteboard({ theme, triggerSound }: WhiteboardProps) {
         />
 
         {/* Bottom coordinate indicators representing sandbox positioning info */}
-        <div className="absolute bottom-2 left-2 pointer-events-none flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60 border border-zinc-900/50 text-[8px] font-mono text-zinc-500">
+        <div className="absolute bottom-2 left-2 pointer-events-none flex items-center gap-1 px-1.5 py-0.5 rounded bg-black/60 border border-zinc-900/50 text-[10px] font-mono text-zinc-500">
           <span>COORDS: {canvasSize.width}x{canvasSize.height}</span>
           <span>•</span>
           <span>STROKESTACK: {history.length}</span>

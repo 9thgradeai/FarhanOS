@@ -30,8 +30,13 @@ export default function GardenWindow({ styleSet, hoveredGardenNode, setHoveredGa
               return (
                 <button
                   key={gn.id}
+                  aria-label={`Concept node: ${gn.label}`}
+                  aria-pressed={isNodeHovered}
                   onMouseEnter={() => { setHoveredGardenNode(gn.id); triggerSound(1100, 0.01); }}
                   onMouseLeave={() => setHoveredGardenNode(null)}
+                  onFocus={() => setHoveredGardenNode(gn.id)}
+                  onBlur={() => setHoveredGardenNode(null)}
+                  onClick={() => { setHoveredGardenNode(gn.id); triggerSound(1100, 0.01); }}
                   style={{ left: `${posX}%`, top: `${posY}%` }}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 p-1.5 py-0.5 rounded border text-[9px] transition-all cursor-pointer font-mono ${isNodeHovered ? 'bg-[#00ffcc] text-black border-[#00ffcc] scale-110 shadow-[0_0_8px_#00ffcc] z-50' : 'bg-zinc-900/60 border-zinc-800 text-zinc-400'}`}
                 >
@@ -58,7 +63,7 @@ export default function GardenWindow({ styleSet, hoveredGardenNode, setHoveredGa
             {!['nlp', 'transformers', 'depression', 'ethics', 'saas'].includes(hoveredGardenNode) && `Semantic connection active on ${hoveredGardenNode}. High performance clustering coefficient evaluated.`}
           </p>
         ) : (
-          <p className="text-[10px] text-zinc-500 font-sans">Hover on any interactive concept node above to evaluate corresponding diagnostic dependencies...</p>
+          <p className="text-[10px] text-zinc-500 font-sans">Hover, focus, or tap any interactive concept node above to evaluate corresponding diagnostic dependencies...</p>
         )}
       </div>
     </div>

@@ -10,7 +10,9 @@ const InPreContext = createContext(false);
 const SAFE_HREF = /^(https?:|mailto:|#|\/)/i;
 
 const components: Components = {
-  h1: ({ children }) => <h1 className="text-lg font-bold text-white mb-2">{children}</h1>,
+  // Rendered inside dialogs/windows that already live under the page H1 —
+  // cap markdown headings at h2 so AI content can never inject a second h1.
+  h1: ({ children }) => <h2 className="text-lg font-bold text-white mb-2">{children}</h2>,
   h2: ({ children }) => <h2 className="text-base font-bold text-white mb-1.5">{children}</h2>,
   h3: ({ children }) => <h3 className="text-sm font-semibold text-zinc-200 mb-1">{children}</h3>,
   p: ({ children }) => <p className="text-zinc-300 mb-2 leading-relaxed">{children}</p>,
@@ -36,18 +38,23 @@ const components: Components = {
   tbody: ({ children }) => <tbody className="divide-y divide-zinc-800">{children}</tbody>,
   tr: ({ children }) => <tr>{children}</tr>,
   td: ({ children }) => <td className="px-3 py-2 text-zinc-300">{children}</td>,
-  th: ({ children }) => <th className="px-3 py-2 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">{children}</th>,
+  th: ({ children }) => <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-zinc-400 uppercase tracking-wider">{children}</th>,
   hr: () => <hr className="border-zinc-800 my-3" />,
-  a: ({ href, children }) => (
-    <a
-      href={typeof href === 'string' && SAFE_HREF.test(href) ? href : undefined}
-      className="text-indigo-400 hover:text-indigo-300 underline"
-      target="_blank"
-      rel="noreferrer"
-    >
-      {children}
-    </a>
-  ),
+  a: ({ href, children }) => {
+    const safeHref = typeof href === 'string' && SAFE_HREF.test(href) ? href : undefined;
+    const isExternal = typeof safeHref === 'string' && /^https?:/i.test(safeHref);
+    return (
+      <a
+        href={safeHref}
+        className="text-indigo-400 hover:text-indigo-300 underline"
+        {...(isExternal
+          ? { target: '_blank', rel: 'noopener noreferrer' }
+          : {})}
+      >
+        {children}
+      </a>
+    );
+  },
   strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
   em: ({ children }) => <em className="text-zinc-400 italic">{children}</em>,
 };
