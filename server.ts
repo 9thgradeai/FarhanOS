@@ -168,6 +168,14 @@ app.post('/api/contact', async (req, res) => {
   }
 });
 
+// Unknown /api/* paths must never fall through to the SPA HTML shell —
+// API consumers get a JSON 404 for any method. Registered before static
+// serving and the SPA fallback so it holds in both dev and production.
+app.all('/api/*', (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 function respondError(res: express.Response, err: unknown): void {
   if (err instanceof ApiError) {
     res.status(err.status).json({ error: err.message });

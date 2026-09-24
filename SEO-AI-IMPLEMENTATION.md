@@ -87,11 +87,22 @@ local/prod serving, Vercel static-build + Node API (`api/index.ts`).
   `vercel.json`). No auth/rate-limit changes; `/api/` disallowed for
   crawlers, not exposed.
 
-## 10. Error handling
+## 10. Error handling & routing
 
-- SPA fallback in `server.ts` skips `/api/*` (API errors stay JSON with
-  proper status codes via `respondError`). Crawler files served before
-  fallback. No custom 404 route exists (SPA) — out-of-scope, not faked.
+- `vercel.json` uses modern `rewrites`/`redirects`/`headers`/
+  `cleanUrls`/`trailingSlash` alongside the legacy `routes` entry — this
+  coexistence is explicitly allowed by current Vercel docs. `builds` is kept
+  because it wires the `@vercel/node` API function and the static build.
+- `server.ts`: unknown `/api/*` paths return JSON
+  `{ error: 'API endpoint not found' }` (404) for any method — they never
+  fall through to the SPA HTML shell. Mirrors the Vercel adapter
+  (`api/index.ts`), which already 404s unknown endpoints as JSON.
+- www → apex 301, crawler-file caching, immutable-asset caching, and
+  security headers are declared in `vercel.json`; Express applies the same
+  baseline headers when self-hosting. Crawler files are served before the
+  SPA fallback. No custom 404 page exists (single-URL SPA) — not faked.
+- Route matrix verified against a local production boot: `/` 200 HTML,
+  crawler/key files 200, unknown API routes JSON 404, deep paths SPA 200.
 
 ## 10b. IndexNow (instant indexing for Bing and co.)
 

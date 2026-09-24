@@ -22,12 +22,6 @@
   "trailingSlash": false,
   "redirects": [
     {
-      "source": "/:path*/",
-      "has": [{ "type": "host", "value": "farhankabir.tech" }],
-      "destination": "https://farhankabir.tech/:path*",
-      "permanent": true
-    },
-    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.farhankabir.tech" }],
       "destination": "https://farhankabir.tech/:path*",
