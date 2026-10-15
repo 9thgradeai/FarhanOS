@@ -1,8 +1,8 @@
 import { Send, Cpu, Volume2, VolumeX, FileText, ExternalLink } from 'lucide-react';
-import MarkdownRenderer from '../../components/MarkdownRenderer';
+import MarkdownRenderer, { type MarkdownTone } from '../../components/MarkdownRenderer';
 import { FarhanAIIcon } from '../../components/FarhanAIIcon';
 import { sourceWindowFor } from '../../utils/osActions';
-import { StyleSet } from '../../types';
+import { StyleSet, type Theme } from '../../types';
 
 interface TwinMessage {
   role: 'user' | 'assistant';
@@ -25,7 +25,16 @@ interface TwinWindowProps {
   speakText: (text: string, index: number) => void;
   stopSpeaking: () => void;
   styleSet: StyleSet;
+  theme?: Theme;
 }
+
+const TONE_FOR_THEME: Record<Theme, MarkdownTone> = {
+  dark: 'dark',
+  light: 'light',
+  terminal: 'terminal',
+  cyberpunk: 'cyberpunk',
+  ai: 'ai',
+};
 
 export default function TwinWindow({
   twinMessages,
@@ -38,30 +47,32 @@ export default function TwinWindow({
   playingMessageIndex,
   speakText,
   stopSpeaking,
-  styleSet
+  styleSet,
+  theme = 'dark',
 }: TwinWindowProps) {
+  const tone = TONE_FOR_THEME[theme] ?? 'dark';
   return (
-    <div className="flex flex-col h-full gap-3">
+    <div className="flex flex-col h-full gap-3 font-mono">
       <div className="border-b border-zinc-800/60 pb-2 mb-1">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 shrink-0 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">
-            <FarhanAIIcon className="w-full h-full" />
+            <FarhanAIIcon className="w-full h-full" isTerminal={theme === 'terminal'} />
           </div>
-          <span className="font-bold text-slate-100 tracking-tight">Interactive Ask Twin Engine</span>
+          <span className="font-bold uppercase tracking-widest text-[11px] text-slate-100">Interactive Ask Twin Engine</span>
         </div>
-        <p className="text-zinc-400 text-[10px] mt-0.5 leading-relaxed font-normal">
+        <p className="text-zinc-400 text-[10px] mt-0.5 leading-relaxed font-mono uppercase tracking-wider">
           Enter any prompt below. The model responds based on Farhan's publications, NLP methodologies, and complete career achievements.
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 p-1 scrollbar-none text-[11px] leading-relaxed select-text font-normal max-h-[220px]">
+      <div className="flex-1 overflow-y-auto space-y-3 p-1 scrollbar-none text-[11px] leading-[1.7] select-text font-mono max-h-[220px]">
         {twinMessages.map((m, idx) => (
           <div key={idx} className={`flex flex-col gap-1 w-full ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-            <div className={`p-3 rounded-xl max-w-[90%] select-text border shadow-xs ${m.role === 'user' ? 'bg-sky-500/10 border-sky-500/20 text-slate-100' : 'bg-zinc-950/40 border-zinc-900 text-slate-300'}`}>
+            <div className={`px-3.5 py-3 rounded-xl max-w-[92%] select-text border shadow-xs [overflow-wrap:anywhere] ${m.role === 'user' ? 'bg-sky-500/10 border-sky-500/20 text-slate-100' : 'bg-zinc-950/40 border-zinc-900 text-slate-300'}`}>
               {m.role === 'assistant' ? (
-                <MarkdownRenderer content={m.content} />
+                <MarkdownRenderer content={m.content} tone={tone} />
               ) : (
-                <p className="whitespace-pre-wrap text-[11px]">{m.content}</p>
+                <p className="whitespace-pre-wrap text-[12px] leading-[1.7] [overflow-wrap:anywhere]">{m.content}</p>
               )}
             </div>
 
@@ -82,7 +93,7 @@ export default function TwinWindow({
                     speakText(m.content, idx);
                   }
                 }}
-                className="text-[9px] text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer font-semibold"
+                className="text-[9px] text-purple-400 hover:text-purple-300 flex items-center gap-1 cursor-pointer font-semibold uppercase tracking-wider"
               >
                 {playingMessageIndex === idx ? (
                   <>
@@ -122,7 +133,7 @@ export default function TwinWindow({
                       title={s.title}
                       className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 max-w-[160px] truncate"
                     >
-                      {s.title}
+                      {label}
                     </span>
                   );
                 })}
@@ -131,7 +142,7 @@ export default function TwinWindow({
           </div>
         ))}
         {twinLoading && (
-          <div className="flex items-center gap-2 text-purple-400 animate-pulse font-mono text-[10px]">
+          <div className="flex items-center gap-2 text-purple-400 animate-pulse font-mono text-[10px] uppercase tracking-widest">
             <Cpu className="w-3.5 h-3.5 animate-spin" />
             <span>FarhanTwin processing query…</span>
           </div>
@@ -140,7 +151,7 @@ export default function TwinWindow({
 
       {/* Action receipt: the twin operates the portfolio, not just chats. */}
       {actionNote && (
-        <div role="status" className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[10px] font-mono">
+        <div role="status" className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[10px] font-mono uppercase tracking-wider">
           <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
           {actionNote}
         </div>
@@ -158,7 +169,7 @@ export default function TwinWindow({
             key={chip}
             onClick={() => { handleSendTwinMessage(chip); }}
             disabled={twinLoading}
-            className="text-[10px] text-left p-1.5 rounded-lg bg-zinc-950/30 hover:bg-zinc-950/80 border border-zinc-900 text-zinc-400 hover:text-slate-200 truncate cursor-pointer transition-colors disabled:opacity-50"
+            className="text-[10px] font-mono text-left p-1.5 rounded-lg bg-zinc-950/30 hover:bg-zinc-950/80 border border-zinc-900 text-zinc-400 hover:text-slate-200 truncate cursor-pointer transition-colors disabled:opacity-50"
           >
             → {chip}
           </button>
@@ -175,7 +186,7 @@ export default function TwinWindow({
           onChange={(e) => setTwinInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendTwinMessage()}
           placeholder="Inquire about clinical studies, model performance parameters..."
-          className="flex-1 scroll-p-2 bg-black/60 border border-zinc-800 rounded-lg py-2 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-purple-500/50 text-[11px] text-slate-100 placeholder-zinc-500"
+          className="flex-1 scroll-p-2 bg-black/60 border border-zinc-800 rounded-lg py-2 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-purple-500/50 text-[11px] font-mono text-slate-100 placeholder-zinc-500"
         />
         <button
           onClick={() => handleSendTwinMessage()}

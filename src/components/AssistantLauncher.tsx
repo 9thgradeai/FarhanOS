@@ -498,6 +498,8 @@ export default function AssistantLauncher({
     };
   }, [isOpen, handleClose]);
 
+  const mdTone = isTerminal ? 'terminal' : theme === 'cyberpunk' ? 'cyberpunk' : theme === 'ai' ? 'ai' : isLight ? 'light' : 'dark';
+
   const glassClass = isLight
     ? 'bg-white/85 border-slate-200/80 shadow-xl shadow-slate-900/10'
     : 'bg-zinc-950/92 border-zinc-800/70 shadow-2xl shadow-black/60';
@@ -508,11 +510,15 @@ export default function AssistantLauncher({
 
   const userBubble = isLight
     ? 'bg-indigo-50 border-indigo-100 text-slate-800'
-    : 'bg-indigo-500/10 border-indigo-500/20 text-slate-100';
+    : isTerminal
+      ? 'bg-[#33ff33]/10 border-[#33ff33]/40 text-[#33ff33] font-mono'
+      : 'bg-indigo-500/10 border-indigo-500/20 text-slate-100';
 
   const assistantBubble = isLight
     ? 'bg-slate-50 border-slate-200 text-slate-700'
-    : 'bg-zinc-900/50 border-zinc-800 text-zinc-200';
+    : isTerminal
+      ? 'bg-black border-[#33ff33]/30 text-[#33ff33]/90 font-mono'
+      : 'bg-zinc-900/50 border-zinc-800 text-zinc-200';
 
   const contextLabel = useMemo(
     () =>
@@ -617,9 +623,9 @@ export default function AssistantLauncher({
                         ))}
                       </div>
                     ) : msg.role === 'assistant' ? (
-                      <MarkdownRenderer content={msg.content} />
+                      <MarkdownRenderer content={msg.content} tone={mdTone} />
                     ) : (
-                      <p className="text-[13px] leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <p className="text-[13px] leading-[1.7] whitespace-pre-wrap [overflow-wrap:anywhere]">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'assistant' && msg.content && !msg.streaming && (

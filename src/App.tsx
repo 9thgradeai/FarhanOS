@@ -1100,60 +1100,60 @@ export default function App() {
           accentColor: 'text-pink-500',
           accentBorder: 'border-pink-500/40',
           indicator: 'bg-[#00ffcc] shadow-[0_0_8px_#00ffcc]',
-          panelHeader: 'text-pink-400 uppercase tracking-widest text-[11px] font-bold',
-          badge: 'bg-pink-500/20 border border-pink-500/40 text-pink-300'
+          panelHeader: 'text-pink-400 uppercase tracking-widest text-[11px] font-bold font-mono',
+          badge: 'bg-pink-500/20 border border-pink-500/40 text-pink-300 text-[11px] font-mono uppercase tracking-wider'
         };
       case 'ai':
         return {
-          bg: 'bg-[#050414] text-slate-100 selection:bg-purple-600/30 selection:text-white',
+          bg: 'bg-[#050414] text-slate-100 font-mono selection:bg-purple-600/30 selection:text-white',
           glass: 'bg-purple-950/20 backdrop-blur-xl border border-purple-500/30 shadow-[0_20px_50px_rgba(147,51,234,0.15)] ring-1 ring-white/10',
-          windowHeader: 'bg-gradient-to-r from-purple-950/50 via-slate-900 to-indigo-950/50 text-slate-100 border-b border-purple-500/30 font-sans backdrop-blur-md',
-          btnPrimary: 'bg-gradient-to-r from-purple-600 to-cyan-500 text-white border border-purple-400 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:opacity-90 transition-all active:scale-95 duration-100',
-          btnSecondary: 'bg-purple-950/40 border border-cyan-500/40 text-cyan-200 hover:bg-purple-950/80 transition-all',
+          windowHeader: 'bg-gradient-to-r from-purple-950/50 via-slate-900 to-indigo-950/50 text-slate-100 border-b border-purple-500/30 font-mono backdrop-blur-md',
+          btnPrimary: 'bg-gradient-to-r from-purple-600 to-cyan-500 text-white border border-purple-400 shadow-[0_0_20px_rgba(139,92,246,0.3)] hover:opacity-90 transition-all active:scale-95 duration-100 font-mono',
+          btnSecondary: 'bg-purple-950/40 border border-cyan-500/40 text-cyan-200 hover:bg-purple-950/80 transition-all font-mono',
           accentColor: 'text-purple-400',
           accentBorder: 'border-purple-500/30',
           indicator: 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)] animate-pulse',
-          panelHeader: 'text-purple-400 tracking-wider text-xs font-semibold',
-          badge: 'bg-purple-500/20 border border-purple-500/30 text-purple-200 text-xs'
+          panelHeader: 'text-purple-400 uppercase tracking-widest text-[11px] font-bold font-mono',
+          badge: 'bg-purple-500/20 border border-purple-500/30 text-purple-200 text-[11px] font-mono uppercase tracking-wider'
         };
       case 'terminal':
         return {
           bg: 'bg-black text-[#33ff33] font-mono selection:bg-[#33ff33]/20',
           glass: 'bg-black border border-[#33ff33] shadow-[0_0_15px_rgba(51,255,51,0.1)]',
           windowHeader: 'bg-zinc-950 text-[#33ff33] border-b border-[#33ff33] font-mono',
-          btnPrimary: 'bg-[#33ff33] text-black border border-[#33ff33] font-bold hover:bg-[#33ff33]/80 transition-all',
-          btnSecondary: 'bg-black border border-[#33ff33] text-[#33ff33] hover:bg-[#33ff33]/15 transition-all',
+          btnPrimary: 'bg-[#33ff33] text-black border border-[#33ff33] font-mono font-bold hover:bg-[#33ff33]/80 transition-all',
+          btnSecondary: 'bg-black border border-[#33ff33] text-[#33ff33] hover:bg-[#33ff33]/15 transition-all font-mono',
           accentColor: 'text-[#33ff33]',
           accentBorder: 'border-[#33ff33]/30',
           indicator: 'bg-[#33ff33] shadow-[0_0_10px_#33ff33]',
-          panelHeader: 'text-[#33ff33] font-bold uppercase tracking-wider text-[11px]',
-          badge: 'bg-transparent border border-[#33ff33] text-[#33ff33] text-xs'
+          panelHeader: 'text-[#33ff33] font-bold uppercase tracking-widest text-[11px] font-mono',
+          badge: 'bg-transparent border border-[#33ff33] text-[#33ff33] text-[11px] font-mono uppercase tracking-wider'
         };
       case 'light':
         return {
-          bg: 'bg-[#f8fafc] text-[#0f172a] selection:bg-sky-500/20',
+          bg: 'bg-[#f8fafc] text-[#0f172a] font-mono selection:bg-sky-500/20',
           glass: 'bg-white/85 backdrop-blur-md border border-slate-200 shadow-xl',
-          windowHeader: 'bg-slate-50 text-slate-800 border-b border-slate-200 font-sans',
-          btnPrimary: 'bg-slate-900 hover:bg-slate-800 text-white transition-all duration-100 active:scale-95',
-          btnSecondary: 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-all',
+          windowHeader: 'bg-slate-50 text-slate-800 border-b border-slate-200 font-mono',
+          btnPrimary: 'bg-slate-900 hover:bg-slate-800 text-white transition-all duration-100 active:scale-95 font-mono',
+          btnSecondary: 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-all font-mono',
           accentColor: 'text-indigo-600',
           accentBorder: 'border-slate-300',
           indicator: 'bg-indigo-600 shadow-[0_0_5px_rgba(79,70,229,0.5)]',
-          panelHeader: 'text-slate-500 uppercase tracking-widest text-[11px] font-bold',
-          badge: 'bg-slate-100 border border-slate-200 text-slate-700 text-xs'
+          panelHeader: 'text-slate-500 uppercase tracking-widest text-[11px] font-bold font-mono',
+          badge: 'bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-mono uppercase tracking-wider'
         };
       default: // dark mode / linear / verson
         return {
-          bg: 'bg-[#090a10] text-[#f1f5f9] selection:bg-sky-500/20',
+          bg: 'bg-[#090a10] text-[#f1f5f9] font-mono selection:bg-sky-500/20',
           glass: 'bg-[#11121d]/75 backdrop-blur-xl border border-[#2c2d3a] shadow-2xl shadow-black/80',
-          windowHeader: 'bg-[#161726]/90 text-slate-200 border-b border-[#2c2d3a] font-sans',
-          btnPrimary: 'bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-950/50 border border-sky-450 transition-all duration-150 active:scale-95',
-          btnSecondary: 'bg-[#1a1b26] border border-[#2d2f3d] text-slate-300 hover:bg-[#202231] transition-all',
+          windowHeader: 'bg-[#161726]/90 text-slate-200 border-b border-[#2c2d3a] font-mono',
+          btnPrimary: 'bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-950/50 border border-sky-450 transition-all duration-150 active:scale-95 font-mono',
+          btnSecondary: 'bg-[#1a1b26] border border-[#2d2f3d] text-slate-300 hover:bg-[#202231] transition-all font-mono',
           accentColor: 'text-sky-400',
           accentBorder: 'border-sky-500/20',
           indicator: 'bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse',
-          panelHeader: 'text-sky-450 uppercase tracking-wider text-[11px] font-bold',
-          badge: 'bg-sky-500/10 border border-sky-500/20 text-sky-300'
+          panelHeader: 'text-sky-450 uppercase tracking-widest text-[11px] font-bold font-mono',
+          badge: 'bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[11px] font-mono uppercase tracking-wider'
         };
     }
   }, [theme]);
@@ -1574,6 +1574,7 @@ export default function App() {
                       speakText={speakText}
                       stopSpeaking={stopSpeaking}
                       styleSet={styleSet}
+                      theme={theme}
                     />
                   </Suspense>
                 )}
