@@ -6,11 +6,13 @@ type AssistantGlyphProps = React.SVGProps<SVGSVGElement> & {
 };
 
 /**
- * Farhan's Personal Assistant mark — a custom "orbit F" monogram.
- * A calligraphic F enclosed by an orbital ring whose top-right gap hosts
- * a four-point spark (the animated core). Class hooks (`glyph-core`,
- * `glyph-node`, `glyph-node-inner`) are consumed by index.css state
- * animations and must not be renamed.
+ * Farhan AI launcher mark v2 — "Signal F".
+ * A bold geometric F with a lightning-cut spine, locked inside a
+ * broken orbit ring. The 4-point spark sits in the ring gap and
+ * acts as the attention anchor (pulses via .glyph-core).
+ *
+ * Class hooks (glyph-core / glyph-node / glyph-node-inner) are
+ * consumed by index.css and must not be renamed.
  */
 export function AssistantGlyph({ state = 'idle', size = 64, className = '', ...props }: AssistantGlyphProps) {
   const stateClass = state !== 'idle' ? `glyph-${state}` : 'glyph-idle';
@@ -25,59 +27,73 @@ export function AssistantGlyph({ state = 'idle', size = 64, className = '', ...p
       {...props}
     >
       <defs>
-        <filter id="glyph-glow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="1.4" result="blur" />
+        <linearGradient id="fa-spark" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#A5B4FC" />
+          <stop offset="55%" stopColor="#22D3EE" />
+          <stop offset="100%" stopColor="#34D399" />
+        </linearGradient>
+        <linearGradient id="fa-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="currentColor" stopOpacity="1" />
+          <stop offset="100%" stopColor="currentColor" stopOpacity="0.35" />
+        </linearGradient>
+        <filter id="fa-glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="1.6" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-        <linearGradient id="glyph-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="currentColor" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="currentColor" stopOpacity="0.55" />
-        </linearGradient>
       </defs>
 
-      {/* Orbital ring — opens at the top-right to cradle the spark */}
-      <path
-        d="M 52.7 28.4 A 21 21 0 1 1 35.6 11.3"
-        stroke="url(#glyph-gradient)"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      {/* Counterweight accent arc, bottom-left */}
-      <path
-        d="M 21.4 54.6 A 25 25 0 0 1 9.3 21.4"
+      {/* Attention halo — faint dashed orbit, opposite rotation feel */}
+      <circle
+        cx="32"
+        cy="33"
+        r="26.5"
         stroke="currentColor"
-        strokeWidth="1.4"
+        strokeWidth="1.2"
+        strokeDasharray="3 5"
         strokeLinecap="round"
-        opacity="0.3"
+        opacity="0.28"
       />
 
-      {/* Monogram: hooked-stroke F */}
+      {/* Main orbit ring — thick, opens top-right to cradle the spark */}
+      <path
+        d="M 53.5 27.5 A 22 22 0 1 1 36.5 10.6"
+        stroke="url(#fa-ring)"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+
+      {/* Bold F monogram — chunky, high legibility at 24px */}
       <g
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="5.2"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
-        opacity="0.95"
       >
-        <path d="M24.5 18.5 V42 Q24.5 46.5 29.5 46.5" />
-        <path d="M24.5 18.5 H38.5" />
-        <path d="M24.5 31.5 H33.5" />
+        <path d="M25 19 V43" />
+        <path d="M25 20 H40" />
+        <path d="M25 31 H36" />
       </g>
-
-      {/* Nodes at the ring termini */}
-      <circle cx="35.6" cy="11.3" r="1.8" fill="currentColor" className="glyph-node" />
-      <circle cx="52.7" cy="28.4" r="1.5" fill="currentColor" className="glyph-node-inner" />
-
-      {/* Four-point spark — the living core of the mark */}
+      {/* Lightning cut through the F spine — the "catchy" hook */}
       <path
-        d="M46.9 10.75 Q46.9 17.15 53.3 17.15 Q46.9 17.15 46.9 23.55 Q46.9 17.15 40.5 17.15 Q46.9 17.15 46.9 10.75 Z"
-        fill="currentColor"
+        d="M30.5 15 L23.5 32.5 H28 L25.5 47 L34.5 29 H29.5 L32.5 15 Z"
+        fill="url(#fa-spark)"
+        opacity="0.95"
+      />
+
+      {/* Nodes at the ring termini (animated via CSS) */}
+      <circle cx="36.5" cy="10.6" r="2.4" fill="url(#fa-spark)" className="glyph-node" filter="url(#fa-glow)" />
+      <circle cx="53.5" cy="27.5" r="2" fill="currentColor" className="glyph-node-inner" />
+
+      {/* Hero spark — large 4-point star, gradient filled, always glowing */}
+      <path
+        d="M47.5 2.5 Q47.5 11.5 56.5 11.5 Q47.5 11.5 47.5 20.5 Q47.5 11.5 38.5 11.5 Q47.5 11.5 47.5 2.5 Z"
+        fill="url(#fa-spark)"
         className="glyph-core"
-        filter="url(#glyph-glow)"
+        filter="url(#fa-glow)"
       />
     </svg>
   );
