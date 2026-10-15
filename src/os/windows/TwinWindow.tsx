@@ -1,5 +1,6 @@
 import { Send, Cpu, Volume2, VolumeX, FileText, ExternalLink } from 'lucide-react';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
+import { FarhanAIIcon } from '../../components/FarhanAIIcon';
 import { sourceWindowFor } from '../../utils/osActions';
 import { StyleSet } from '../../types';
 
@@ -43,16 +44,8 @@ export default function TwinWindow({
     <div className="flex flex-col h-full gap-3">
       <div className="border-b border-zinc-800/60 pb-2 mb-1">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 text-indigo-400">
-            <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
-              <path d="M22 20L22 44L36 44L36 34L44 34L44 44L52 44" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="22" cy="20" r="3" fill="#34d399" />
-              <circle cx="22" cy="44" r="2.5" fill="currentColor" />
-              <circle cx="36" cy="44" r="2.5" fill="currentColor" />
-              <circle cx="36" cy="34" r="2.5" fill="currentColor" />
-              <circle cx="44" cy="34" r="2.5" fill="currentColor" />
-              <circle cx="52" cy="44" r="2.5" fill="currentColor" />
-            </svg>
+          <div className="w-7 h-7 shrink-0 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">
+            <FarhanAIIcon className="w-full h-full" />
           </div>
           <span className="font-bold text-slate-100 tracking-tight">Interactive Ask Twin Engine</span>
         </div>

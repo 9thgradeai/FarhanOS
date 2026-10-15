@@ -24,29 +24,22 @@ export interface BootLine {
 
 export const BOOT_TIMING = {
   /** Hard floor so the experience never feels abrupt. */
-  minDurationMs: 2000,
+  minDurationMs: 900,
   /** Safety cap: never block the portfolio longer than this. */
-  maxDurationMs: 8000,
+  maxDurationMs: 3500,
   /** Length of the dissolve transition into the homepage. */
-  revealMs: 800,
+  revealMs: 350,
   /** Hold time when reduced motion is enabled before revealing. */
-  reducedMotionHoldMs: 520,
+  reducedMotionHoldMs: 200,
 } as const;
 
 export const WORKSTATION_HOST = 'farhan-kabir.dev';
 
 export const BOOT_SCRIPT: BootLine[] = [
-  { kind: 'cmd', prompt: 'farhan@workstation ~ %', text: 'ssh portfolio', cps: 80, after: 120 },
-  { kind: 'out', text: `Connecting to ${WORKSTATION_HOST} …`, cps: 140, after: 100 },
-  { kind: 'out', text: 'Authenticated as "farhan" · session secured', cps: 140, after: 120 },
-  { kind: 'cmd', prompt: 'farhan@portfolio ~ %', text: 'source .env && fetch profile', cps: 80, after: 120 },
-  { kind: 'out', text: 'Resolving runtime · node 20.11 · pnpm 9 · rustc 1.78', cps: 150, after: 100 },
-  { kind: 'out', text: 'Mounting workspace modules · 14 packages', cps: 150, after: 120 },
-  { kind: 'cmd', prompt: 'farhan@portfolio ~ %', text: 'build --optimize', cps: 80, after: 120 },
-  { kind: 'ok', text: 'Compiled portfolio bundle · 0 warnings', cps: 150, after: 100 },
-  { kind: 'ok', text: 'Optimized assets · fonts + images prefetched', cps: 150, after: 120 },
-  { kind: 'out', text: 'Establishing secure session → portfolio', cps: 140, after: 120 },
-  { kind: 'cmd', prompt: 'visitor@portfolio:~$', text: 'farhanos --boot desktop', cps: 76, after: 160 },
-  { kind: 'ok', text: 'Desktop environment mounted · neural core online', cps: 130, after: 120 },
-  { kind: 'info', text: 'Rendering workspace →', cps: 100 },
+  { kind: 'cmd', prompt: 'farhan@workstation ~ %', text: 'ssh portfolio', cps: 220, after: 40 },
+  { kind: 'out', text: `Connecting to ${WORKSTATION_HOST} …`, cps: 320, after: 30 },
+  { kind: 'out', text: 'Authenticated as "farhan" · session secured', cps: 320, after: 30 },
+  { kind: 'cmd', prompt: 'farhan@portfolio ~ %', text: 'farhanos --boot desktop', cps: 200, after: 50 },
+  { kind: 'ok', text: 'Desktop environment mounted · neural core online', cps: 300, after: 40 },
+  { kind: 'info', text: 'Rendering workspace →', cps: 260 },
 ];
