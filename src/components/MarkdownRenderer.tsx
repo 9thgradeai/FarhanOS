@@ -37,10 +37,10 @@ interface ToneClasses {
  */
 const TONES: Record<MarkdownTone, ToneClasses> = {
   dark: {
-    root: 'font-sans',
-    h1: 'text-[15px] font-bold tracking-tight text-white mt-1 mb-2',
-    h2: 'text-[14px] font-bold tracking-tight text-slate-100 mt-3 mb-1.5',
-    h3: 'text-[13px] font-semibold tracking-tight text-slate-200 mt-2.5 mb-1',
+    root: 'font-mono',
+    h1: 'text-[13px] font-bold uppercase tracking-widest text-white mt-1 mb-2',
+    h2: 'text-xs font-bold uppercase tracking-widest text-slate-100 mt-3 mb-1.5',
+    h3: 'text-[11px] font-bold uppercase tracking-widest text-slate-200 mt-2.5 mb-1',
     p: 'text-slate-300 mb-2 last:mb-0',
     li: 'text-slate-300',
     ul: 'list-disc list-outside ml-4 pl-1 mb-2 space-y-1',
@@ -60,10 +60,10 @@ const TONES: Record<MarkdownTone, ToneClasses> = {
     em: 'text-zinc-400 italic',
   },
   light: {
-    root: 'font-sans',
-    h1: 'text-[15px] font-bold tracking-tight text-slate-900 mt-1 mb-2',
-    h2: 'text-[14px] font-bold tracking-tight text-slate-900 mt-3 mb-1.5',
-    h3: 'text-[13px] font-semibold tracking-tight text-slate-800 mt-2.5 mb-1',
+    root: 'font-mono',
+    h1: 'text-[13px] font-bold uppercase tracking-widest text-slate-900 mt-1 mb-2',
+    h2: 'text-xs font-bold uppercase tracking-widest text-slate-900 mt-3 mb-1.5',
+    h3: 'text-[11px] font-bold uppercase tracking-widest text-slate-800 mt-2.5 mb-1',
     p: 'text-slate-700 mb-2 last:mb-0',
     li: 'text-slate-700',
     ul: 'list-disc list-outside ml-4 pl-1 mb-2 space-y-1',

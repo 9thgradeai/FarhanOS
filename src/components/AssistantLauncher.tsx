@@ -509,16 +509,16 @@ export default function AssistantLauncher({
     : 'bg-black/70 border-zinc-800 focus:border-indigo-500/50';
 
   const userBubble = isLight
-    ? 'bg-indigo-50 border-indigo-100 text-slate-800'
+    ? 'bg-indigo-50 border-indigo-100 text-slate-800 font-mono'
     : isTerminal
       ? 'bg-[#33ff33]/10 border-[#33ff33]/40 text-[#33ff33] font-mono'
-      : 'bg-indigo-500/10 border-indigo-500/20 text-slate-100';
+      : 'bg-indigo-500/10 border-indigo-500/20 text-slate-100 font-mono';
 
   const assistantBubble = isLight
-    ? 'bg-slate-50 border-slate-200 text-slate-700'
+    ? 'bg-slate-50 border-slate-200 text-slate-700 font-mono'
     : isTerminal
       ? 'bg-black border-[#33ff33]/30 text-[#33ff33]/90 font-mono'
-      : 'bg-zinc-900/50 border-zinc-800 text-zinc-200';
+      : 'bg-zinc-900/50 border-zinc-800 text-zinc-200 font-mono';
 
   const contextLabel = useMemo(
     () =>
@@ -625,7 +625,7 @@ export default function AssistantLauncher({
                     ) : msg.role === 'assistant' ? (
                       <MarkdownRenderer content={msg.content} tone={mdTone} />
                     ) : (
-                      <p className="text-[13px] leading-[1.7] whitespace-pre-wrap [overflow-wrap:anywhere]">{msg.content}</p>
+                      <p className="text-[13px] leading-[1.7] font-mono whitespace-pre-wrap [overflow-wrap:anywhere]">{msg.content}</p>
                     )}
                   </div>
                   {msg.role === 'assistant' && msg.content && !msg.streaming && (
