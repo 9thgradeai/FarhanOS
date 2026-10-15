@@ -1,5 +1,5 @@
 /**
- * Deterministic, zero-cost context awareness for Farhan AI.
+ * Deterministic, zero-cost context awareness for Caffeine.
  * Maps the visitor's current landing section or OS window to factual follow-up
  * questions and proactive greeting copy. Every question mirrors verified
  * knowledge — nothing here invents facts, and no model call is spent on
@@ -197,8 +197,8 @@ export function suggestGreeting(opts: {
     };
   }
   return {
-    title: 'Farhan AI',
-    message: "Hi, I'm Farhan AI — Farhan’s neural twin. Ask me about his research, projects, or career.",
+    title: 'Caffeine',
+    message: "Hello, I'm Caffeine (Farhan's AI Assistant). I know pretty much everything about Farhan. Tell me how can I help you today?",
     query: 'What are Farhan’s most impressive achievements?',
   };
 }

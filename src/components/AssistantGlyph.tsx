@@ -6,7 +6,7 @@ type AssistantGlyphProps = React.SVGProps<SVGSVGElement> & {
 };
 
 /**
- * Farhan AI launcher mark v2 — "Signal F".
+ * Caffeine launcher mark v2 — "Signal F".
  * A bold geometric F with a lightning-cut spine, locked inside a
  * broken orbit ring. The 4-point spark sits in the ring gap and
  * acts as the attention anchor (pulses via .glyph-core).

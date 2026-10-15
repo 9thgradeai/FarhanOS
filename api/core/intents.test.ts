@@ -72,7 +72,7 @@ describe('buildModePrompt', () => {
 
   it('composes cleanly with the system prompt', () => {
     const withMode = `${buildAskTwinSystemPrompt()}\n\n${buildModePrompt('recruiter')}`;
-    expect(withMode).toContain('Farhan AI');
+    expect(withMode).toContain('Caffeine');
     expect(withMode).toContain('MODE: RECRUITER DIALOGUE');
     expect(withMode).toContain(INLINE_SYSTEM_PROMPT);
   });

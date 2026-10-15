@@ -1,5 +1,5 @@
 /**
- * Lightweight intent-mode detection for Farhan AI.
+ * Lightweight intent-mode detection for Caffeine.
  * Classifies each user turn into a response-shaping mode so answers are
  * tailored without burning tokens on a full secondary model call. Pure and
  * deterministic — new files must never fabricate knowledge.

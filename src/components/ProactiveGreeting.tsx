@@ -13,7 +13,7 @@ interface ProactiveGreetingProps {
 }
 
 /**
- * Discreet proactive greeting chip shown next to the Farhan AI launcher.
+ * Discreet proactive greeting chip shown next to the Caffeine launcher.
  * Pure presentation — all timing/cooldown logic lives in AssistantLauncher.
  */
 export default function ProactiveGreeting({
@@ -80,7 +80,7 @@ export default function ProactiveGreeting({
       <div className="mt-2.5 flex items-center justify-between">
         <span className={`text-[11px] font-semibold flex items-center gap-1 ${isTerminal ? 'text-[#33ff33]' : 'text-indigo-400'}`}>
           <Sparkles className="w-3 h-3" />
-          Ask Farhan AI
+          Ask Caffeine
         </span>
         <ArrowRight className={`w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 ${isLight ? 'text-slate-400' : 'text-zinc-500'}`} />
       </div>

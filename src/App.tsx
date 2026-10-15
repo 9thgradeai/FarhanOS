@@ -315,7 +315,7 @@ export default function App() {
   // Ask Twin AI State
   const [twinInput, setTwinInput] = useState('');
   const [twinMessages, setTwinMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; audio?: string; sources?: { title: string }[] }>>([
-    { role: 'assistant', content: "Systems fully operational. I am Farhan's certified neural clone. Feel free to enquire about my NLP predictive pipelines, clinical depression research, full-stack architectures, or project command maps." }
+    { role: 'assistant', content: "Hello, I'm Caffeine (Farhan's AI Assistant). I know pretty much everything about Farhan. Tell me how can I help you today?" }
   ]);
   const [twinLoading, setTwinLoading] = useState(false);
   const [playingMessageIndex, setPlayingMessageIndex] = useState<number | null>(null);

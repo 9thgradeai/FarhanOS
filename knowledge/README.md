@@ -1,6 +1,6 @@
 # FarhanOS Knowledge Base
 
-Production-grade RAG knowledge system for Farhan AI.
+Production-grade RAG knowledge system for Caffeine.
 
 ## Structure
 

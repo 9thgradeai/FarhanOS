@@ -5,7 +5,7 @@ type FarhanAIIconProps = React.SVGProps<SVGSVGElement> & {
 };
 
 /**
- * "Ask Farhan AI" desktop + welcome mark v2 — "Ask Tile".
+ * "Ask Caffeine" desktop + welcome mark v2 — "Ask Tile".
  * A high-contrast gradient tile (indigo → cyan) with a white
  * bold-F + lightning bolt, chat-tail notch, and a star spark
  * breaking out of the top-right corner for shelf pop.
@@ -24,7 +24,7 @@ export function FarhanAIIcon({ className = '', width = 64, height = 64, isTermin
       height={height}
       className={className}
       role="img"
-      aria-label="Ask Farhan AI"
+      aria-label="Ask Caffeine"
       {...props}
     >
       <defs>

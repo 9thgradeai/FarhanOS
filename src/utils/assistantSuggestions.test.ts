@@ -73,7 +73,7 @@ describe('suggestQuestions', () => {
 describe('suggestGreeting', () => {
   it('greets first-time visitors with the brand', () => {
     const g = suggestGreeting({ returning: false });
-    expect(g.title).toContain('Farhan AI');
+    expect(g.title).toContain('Caffeine');
     expect(g.message.length).toBeGreaterThan(0);
     expect(g.query.length).toBeGreaterThan(0);
   });

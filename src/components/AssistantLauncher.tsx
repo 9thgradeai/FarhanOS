@@ -52,7 +52,7 @@ const WELCOME_MESSAGE: Message = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "All systems operational. I'm Farhan AI — Farhan Kabir's certified neural twin. Query research, projects, career, or anything else on this page.",
+    "Hello, I'm Caffeine (Farhan's AI Assistant). I know pretty much everything about Farhan. Tell me how can I help you today?",
   timestamp: new Date(),
 };
 
@@ -60,7 +60,7 @@ const RETURNING_WELCOME: Message = {
   id: 'welcome-returning',
   role: 'assistant',
   content:
-    "Welcome back. Farhan AI is online and ready — what would you like to explore today?",
+    "Welcome back. I'm Caffeine (Farhan's AI Assistant) — I know pretty much everything about Farhan. Tell me how can I help you today?",
   timestamp: new Date(),
 };
 
@@ -553,7 +553,7 @@ export default function AssistantLauncher({
                 )}
               </div>
               <h3 className={`text-xl font-bold mb-2 tracking-tight ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
-                Farhan AI
+                Caffeine
               </h3>
               <p id="assistant-dialog-description" className={`text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-400'} max-w-xs mx-auto`}>
                 Farhan Kabir's certified neural twin. Every answer is grounded in verified portfolio intelligence and live data.
@@ -764,7 +764,7 @@ export default function AssistantLauncher({
         </div>
         <div className={`flex flex-col ${compact ? 'min-w-0' : ''}`}>
           <span className={`text-sm font-bold tracking-tight ${compact ? 'truncate' : ''} ${isLight ? 'text-slate-800' : 'text-slate-100'}`}>
-            Farhan AI
+            Caffeine
           </span>
           <span className={`text-[10px] text-emerald-400 font-mono font-medium ${compact ? 'hidden min-[420px]:inline' : ''}`}>Online</span>
         </div>
@@ -819,7 +819,7 @@ export default function AssistantLauncher({
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder="Ask Farhan AI anything…"
+          placeholder="Ask Caffeine anything…"
           rows={1}
           className={`flex-1 resize-none rounded-xl px-4 py-3 text-[13px] outline-none border transition-all ${inputGlass}`}
           style={{ minHeight: '44px', maxHeight: '120px' }}
@@ -847,7 +847,7 @@ export default function AssistantLauncher({
   const dialogProps = {
     role: 'dialog' as const,
     'aria-modal': true as const,
-    'aria-label': "Farhan AI",
+    'aria-label': "Caffeine",
     'aria-describedby': 'assistant-dialog-description',
   };
 
@@ -860,13 +860,13 @@ export default function AssistantLauncher({
 
   const statusAnnouncement =
     aiState === 'thinking'
-      ? 'Farhan AI is thinking'
+      ? 'Caffeine is thinking'
       : aiState === 'responding'
-        ? 'Farhan AI is responding'
+        ? 'Caffeine is responding'
         : aiState === 'error'
-          ? 'Farhan AI encountered an error'
+          ? 'Caffeine encountered an error'
           : aiState === 'success'
-            ? 'Farhan AI has responded'
+            ? 'Caffeine has responded'
             : '';
 
   return (
@@ -958,7 +958,7 @@ export default function AssistantLauncher({
           will-change-transform
           active:scale-90
         `}
-        aria-label="Open Farhan AI"
+        aria-label="Open Caffeine"
         aria-expanded={isOpen}
       >
         <motion.div

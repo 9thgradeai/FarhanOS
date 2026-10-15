@@ -161,7 +161,7 @@ describe('streamAskTwin', () => {
     const system = payload.messages[0].content as string;
     expect(system).toContain('MODE: RECRUITER DIALOGUE');
     expect(system).toContain('about');
-    expect(system).toContain('Farhan AI');
+    expect(system).toContain('Caffeine');
     expect(system).toContain('visit #4');
     expect(system).toContain('OS windows open: projects, research');
   });
