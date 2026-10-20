@@ -28,6 +28,25 @@ export function isAllowedOrigin(origin: string | undefined): boolean {
 }
 
 /**
+ * Rejects state-changing requests forged from a foreign origin (CSRF-style
+ * abuse of the contact form and AI endpoints). CORS alone is NOT an
+ * authorization control: browsers still deliver cross-site POSTs (e.g. via
+ * <form> in no-cors mode) even when the response is unreadable, so the
+ * server must refuse them. Requests with no Origin header (curl,
+ * server-to-server, same-origin navigations) are unaffected.
+ * Throws ApiError(403) when the request must be refused.
+ */
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+export function checkStateChangeOrigin(method: string | undefined, origin: string | undefined): void {
+  if (!method || !STATE_CHANGING_METHODS.has(method.toUpperCase())) return;
+  if (origin === undefined) return; // non-browser clients; CSRF only applies to browsers
+  if (!isAllowedOrigin(origin)) {
+    throw new ApiError(403, 'Origin not allowed.');
+  }
+}
+
+/**
  * fetch with mandatory timeout so a hung upstream socket can't pin the runtime.
  */
 export async function fetchWithTimeout(
@@ -116,9 +135,28 @@ export function checkApiRateLimit(path: string, clientIp: string): boolean {
   return false;
 }
 
-/** Best-effort client IP extraction from proxy headers or socket. */
-export function getClientIp(headersLike: Record<string, unknown>, remoteAddress?: string): string {
-  const fwd = headersLike?.['x-forwarded-for'];
-  if (typeof fwd === 'string' && fwd.length > 0) return fwd.split(',')[0].trim();
+/**
+ * Best-effort client IP extraction.
+ *
+ * The X-Forwarded-For header is attacker-controlled whenever the server is
+ * reachable directly (the Express server binds 0.0.0.0), so it is only
+ * honoured when the caller has explicitly enabled trust:
+ *   - Express: set TRUST_PROXY=1 (only when behind YOUR trusted reverse
+ *     proxy, which must overwrite XFF).
+ *   - Vercel: the platform always overwrites XFF with the verified client
+ *     IP, so the adapter passes trustProxy=true.
+ * Otherwise the socket peer address is used, which cannot be spoofed and
+ * keeps the per-IP rate limits (the only abuse control on these anonymous
+ * endpoints) un-bypassable.
+ */
+export function getClientIp(
+  headersLike: Record<string, unknown>,
+  remoteAddress?: string,
+  trustProxy = false
+): string {
+  if (trustProxy) {
+    const fwd = headersLike?.['x-forwarded-for'];
+    if (typeof fwd === 'string' && fwd.length > 0) return fwd.split(',')[0].trim();
+  }
   return remoteAddress || 'unknown';
 }

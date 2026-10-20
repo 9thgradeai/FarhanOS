@@ -5,6 +5,7 @@ import {
   escapeHtml,
   clamp,
   checkApiRateLimit,
+  checkStateChangeOrigin,
   getClientIp,
 } from './security.ts';
 
@@ -107,8 +108,13 @@ describe('checkApiRateLimit', () => {
 });
 
 describe('getClientIp', () => {
-  it('prefers x-forwarded-for first hop', () => {
-    expect(getClientIp({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' })).toBe('1.2.3.4');
+  it('ignores x-forwarded-for unless the proxy is trusted', () => {
+    expect(getClientIp({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }, '9.9.9.9')).toBe('9.9.9.9');
+    expect(getClientIp({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }, '9.9.9.9', false)).toBe('9.9.9.9');
+  });
+
+  it('trusts x-forwarded-for first hop only when trustProxy is set', () => {
+    expect(getClientIp({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }, '9.9.9.9', true)).toBe('1.2.3.4');
   });
 
   it('falls back to socket remote address', () => {
@@ -118,5 +124,32 @@ describe('getClientIp', () => {
   it('returns "unknown" when nothing is available', () => {
     expect(getClientIp({})).toBe('unknown');
     expect(getClientIp({ 'x-forwarded-for': '' }, undefined)).toBe('unknown');
+  });
+});
+
+describe('checkStateChangeOrigin', () => {
+  it('allows state changes from an allowed origin', () => {
+    expect(() => checkStateChangeOrigin('POST', 'https://farhankabir.tech')).not.toThrow();
+    expect(() => checkStateChangeOrigin('POST', 'http://localhost:3001')).not.toThrow();
+  });
+
+  it('allows origin-less requests (non-browser / same-origin)', () => {
+    expect(() => checkStateChangeOrigin('POST', undefined)).not.toThrow();
+  });
+
+  it('rejects state changes from a foreign origin with 403', () => {
+    try {
+      checkStateChangeOrigin('POST', 'https://evil.example.com');
+      expect.unreachable();
+    } catch (err) {
+      expect((err as ApiError).status).toBe(403);
+    }
+    expect(() => checkStateChangeOrigin('PUT', 'https://evil.example.com')).toThrow();
+  });
+
+  it('never guards safe read methods', () => {
+    expect(() => checkStateChangeOrigin('GET', 'https://evil.example.com')).not.toThrow();
+    expect(() => checkStateChangeOrigin('HEAD', 'https://evil.example.com')).not.toThrow();
+    expect(() => checkStateChangeOrigin('OPTIONS', 'https://evil.example.com')).not.toThrow();
   });
 });
